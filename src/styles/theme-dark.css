@@ -1,0 +1,129 @@
+/* =========================================================
+   ChatyPlayer v1.0
+   Dark Theme
+   ========================================================= */
+
+/* Root Theme Variables */
+.chatyplayer-root {
+  --cp-bg: #000000;
+  --cp-surface: #121212;
+  --cp-surface-light: #1e1e1e;
+  --cp-text: #ffffff;
+  --cp-text-muted: #9ca3af;
+  --cp-primary: #3b82f6;
+  --cp-primary-hover: #2563eb;
+  --cp-border: rgba(255, 255, 255, 0.12);
+  --cp-buffer: rgba(255, 255, 255, 0.4);
+  --cp-progress: #3b82f6;
+}
+
+/* Player Background */
+.chatyplayer-root {
+  background: var(--cp-bg);
+  color: var(--cp-text);
+}
+
+/* Controls */
+.chatyplayer-controls {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85),
+    rgba(0, 0, 0, 0.5),
+    transparent
+  );
+}
+
+.chatyplayer-btn {
+  color: var(--cp-text);
+}
+
+.chatyplayer-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.chatyplayer-btn:focus-visible {
+  outline: 2px solid var(--cp-primary);
+  outline-offset: 2px;
+}
+
+/* Volume Slider */
+.chatyplayer-volume-slider::-webkit-slider-thumb {
+  background: var(--cp-primary);
+}
+
+.chatyplayer-volume-slider::-moz-range-thumb {
+  background: var(--cp-primary);
+}
+
+/* Timeline */
+.chatyplayer-progress-wrapper {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.chatyplayer-buffer {
+  background: var(--cp-buffer);
+}
+
+.chatyplayer-progress {
+  background: var(--cp-progress);
+}
+
+/* Time */
+.chatyplayer-time {
+  color: var(--cp-text-muted);
+}
+
+/* Tooltip */
+.chatyplayer-tooltip {
+  background: rgba(0, 0, 0, 0.9);
+  color: var(--cp-text);
+}
+
+/* Chapter Marker */
+.chatyplayer-chapter-marker {
+  background: var(--cp-text);
+}
+
+/* Settings Panel */
+.chatyplayer-settings-panel {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+}
+
+.chatyplayer-settings-title {
+  color: var(--cp-text-muted);
+}
+
+.chatyplayer-settings-btn {
+  color: var(--cp-text);
+}
+
+.chatyplayer-settings-btn:hover {
+  background: var(--cp-surface-light);
+}
+
+.chatyplayer-settings-btn.is-active {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--cp-primary);
+}
+
+.chatyplayer-settings-select {
+  background: var(--cp-surface-light);
+  color: var(--cp-text);
+  border: 1px solid var(--cp-border);
+}
+
+.chatyplayer-settings-select:focus-visible {
+  outline: 2px solid var(--cp-primary);
+  outline-offset: 2px;
+}
+
+/* Mini Player Shadow */
+.chatyplayer-mini {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Theater Mode */
+.chatyplayer-theater {
+  background: var(--cp-bg);
+}

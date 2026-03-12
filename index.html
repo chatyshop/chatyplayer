@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatyPlayer Demo</title>
+
+  <!-- Load CSS in HEAD (best practice) -->
+  <link rel="stylesheet" href="/src/styles/player.css">
+  <link rel="stylesheet" href="/src/styles/controls.css">
+  <link rel="stylesheet" href="/src/styles/timeline.css">
+  <link rel="stylesheet" href="/src/styles/settings.css">
+  <link rel="stylesheet" href="/src/styles/animations.css">
+  <link rel="stylesheet" href="/src/styles/theme-dark.css">
+
+  <style>
+    body {
+      font-family: system-ui;
+      padding: 40px;
+      background: #111;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<h1>ChatyPlayer Demo</h1>
+
+<div id="player" style="width: 800px;"></div>
+
+<script type="module">
+  import { Player } from '/src/core/Player.ts';
+
+  const container = document.getElementById('player');
+
+  new Player(container, {
+
+  sources: [
+    { src: "/video-480.mp4", label: "480p" },
+    { src: "/video-720.mp4", label: "720p" }
+  ],
+
+  subtitles: [
+    {
+      src: "/subtitles-en.vtt",
+      label: "English",
+      srclang: "en",
+      default: true
+    }
+  ]
+
+})
+  
+</script>
+
+</body>
+</html>

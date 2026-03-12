@@ -1,0 +1,141 @@
+/* =========================================================
+   ChatyPlayer v1.0
+   Settings Panel Styles
+   settings.css
+   ========================================================= */
+
+/* Wrapper */
+.chatyplayer-settings-wrapper {
+  position: relative;
+  display: inline-block;
+  z-index: 90;
+}
+
+/* Settings Panel */
+.chatyplayer-settings-panel {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  min-width: 180px;
+  background: rgba(18, 18, 18, 0.96);
+  border-radius: 8px;
+  padding: 10px;
+  display: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  
+}
+
+.chatyplayer-settings-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Visible state controlled via JS */
+.chatyplayer-settings-panel.is-open {
+  display: block;
+}
+
+/* Section */
+.chatyplayer-settings-section {
+  margin-bottom: 10px;
+}
+
+.chatyplayer-settings-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Section Title */
+.chatyplayer-settings-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+
+/* Buttons */
+.chatyplayer-settings-btn {
+  width: 100%;
+  padding: 8px 10px;
+
+  background: transparent;
+  border: none;
+
+  color: #ffffff;
+  text-align: left;
+
+  font-size: 13px;
+  border-radius: 6px;
+
+  cursor: pointer;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  transition: background 0.2s ease;
+}
+
+/* Hover */
+.chatyplayer-settings-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Active / Selected */
+.chatyplayer-settings-btn.is-active {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+/* Focus accessibility */
+.chatyplayer-settings-btn:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Select Dropdown */
+.chatyplayer-settings-select {
+  width: 100%;
+  padding: 6px 8px;
+  background: #1f1f1f;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Remove default arrow inconsistencies */
+.chatyplayer-settings-select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Divider */
+.chatyplayer-settings-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 8px 0;
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 640px) {
+  .chatyplayer-settings-panel {
+    min-width: 150px;
+    padding: 8px;
+  }
+
+  .chatyplayer-settings-btn {
+    font-size: 12px;
+  }
+
+  .chatyplayer-settings-title {
+    font-size: 10px;
+  }
+}

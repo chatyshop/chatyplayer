@@ -1,0 +1,60 @@
+{
+  "compilerOptions": {
+    /* =========================================
+       Language & Environment
+       ========================================= */
+    "target": "ES2019",
+    "lib": ["ES2019", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+
+    /* =========================================
+       Strictness (Security & Safety)
+       ========================================= */
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strictBindCallApply": true,
+    "noUncheckedIndexedAccess": true,
+    "useUnknownInCatchVariables": true,
+
+    /* =========================================
+       Code Quality
+       ========================================= */
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+
+    /* =========================================
+       Emit Settings (Types Only)
+       ========================================= */
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationMap": false,
+    "declarationDir": "dist",
+    "sourceMap": false,
+
+    /* =========================================
+       Interop & Compatibility
+       ========================================= */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+
+    /* =========================================
+       Build Performance
+       ========================================= */
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo"
+  },
+
+  "include": ["src"],
+
+  "exclude": [
+    "node_modules",
+    "dist",
+    "demo"
+  ]
+}

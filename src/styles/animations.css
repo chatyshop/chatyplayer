@@ -1,0 +1,135 @@
+/* =========================================================
+   ChatyPlayer v1.0
+   animations.css
+   ========================================================= */
+
+/* ========================================
+   Controls Fade In/Out
+   ======================================== */
+
+.chatyplayer-controls-layer {
+  transition: opacity 0.25s ease;
+}
+
+.chatyplayer-root.is-idle .chatyplayer-controls-layer {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chatyplayer-root:not(.is-idle) .chatyplayer-controls-layer {
+  opacity: 1;
+}
+
+/* ========================================
+   Timeline Hover Expansion
+   ======================================== */
+
+.chatyplayer-progress-wrapper {
+  transition: height 0.15s ease;
+}
+
+.chatyplayer-progress-wrapper:hover {
+  height: 8px;
+}
+
+/* ========================================
+   Tooltip Fade
+   ======================================== */
+
+.chatyplayer-tooltip {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.chatyplayer-tooltip.is-visible {
+  opacity: 1;
+  transform: translateY(-14px);
+}
+
+/* ========================================
+   Settings Panel Slide
+   ======================================== */
+
+.chatyplayer-settings-panel {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.chatyplayer-settings-panel.is-open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========================================
+   Button Press Feedback
+   ======================================== */
+
+.chatyplayer-btn {
+  transition: background 0.2s ease, transform 0.12s ease;
+}
+
+.chatyplayer-btn:active {
+  transform: scale(0.95);
+}
+
+/* ========================================
+   Mini Player Entrance
+   ======================================== */
+
+.chatyplayer-mini {
+  animation: chaty-mini-enter 0.25s ease forwards;
+}
+
+@keyframes chaty-mini-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   Theater Mode Smooth Resize
+   ======================================== */
+
+.chatyplayer-theater {
+  transition: width 0.25s ease;
+}
+
+/* ========================================
+   Progress Smooth Movement
+   ======================================== */
+
+.chatyplayer-progress {
+  transition: width 0.1s linear;
+}
+
+/* ========================================
+   Chapter Marker Hover
+   ======================================== */
+
+.chatyplayer-chapter-marker {
+  transition: opacity 0.2s ease;
+}
+
+/* ========================================
+   Accessibility: Reduced Motion
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .chatyplayer-controls-layer,
+  .chatyplayer-progress-wrapper,
+  .chatyplayer-tooltip,
+  .chatyplayer-settings-panel,
+  .chatyplayer-btn,
+  .chatyplayer-mini,
+  .chatyplayer-theater,
+  .chatyplayer-progress,
+  .chatyplayer-chapter-marker {
+    transition: none !important;
+    animation: none !important;
+  }
+}

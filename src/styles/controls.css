@@ -1,0 +1,173 @@
+/* =========================================================
+   ChatyPlayer v1.0
+   Controls Styles
+   controls.css
+   ========================================================= */
+
+/* Controls Container */
+.chatyplayer-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: transparent;
+  height: 50px;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+}
+
+/* Left / Right Groups */
+.chatyplayer-controls-left,
+.chatyplayer-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.chatyplayer-controls-right {
+  margin-left: auto;
+}
+
+/* Button Base */
+.chatyplayer-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background 0.2s ease, transform 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hover State */
+.chatyplayer-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Active Click Feedback */
+.chatyplayer-btn:active {
+  transform: scale(0.95);
+}
+
+/* Focus Accessibility */
+.chatyplayer-btn:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Play Button */
+.chatyplayer-play {
+  font-size: 16px;
+}
+
+/* Fullscreen Button */
+.chatyplayer-fullscreen {
+  font-size: 14px;
+}
+
+/* Volume Section */
+.chatyplayer-volume {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Volume Slider */
+.chatyplayer-volume-slider {
+  width: 90px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  appearance: none;
+}
+
+/* Slider Thumb */
+.chatyplayer-volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #3b82f6;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.chatyplayer-volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* =========================================================
+   Subtitles (CC Button + Language Menu)
+   ========================================================= */
+
+/* CC button */
+
+.chatyplayer-subtitles {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+/* Subtitle language dropdown */
+
+.chatyplayer-subtitle-menu {
+  position: absolute;
+  bottom: 50px;
+  right: 90px;
+  background: rgba(0,0,0,0.9);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  padding: 6px 0;
+  z-index: 120;
+  backdrop-filter: blur(6px);
+
+}
+
+.chatyplayer-controls-right {
+  position: relative;
+}
+
+/* menu buttons */
+
+.chatyplayer-subtitle-menu button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 13px;
+  padding: 6px 12px;
+  text-align: left;
+  cursor: pointer;
+
+}
+
+/* hover state */
+
+.chatyplayer-subtitle-menu button:hover {
+ background: rgba(255,255,255,0.15);
+
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .chatyplayer-volume-slider {
+    width: 60px;
+  }
+
+  .chatyplayer-controls {
+    padding: 6px 10px;
+  }
+}

@@ -1,0 +1,132 @@
+/* =========================================================
+   ChatyPlayer v1.0
+   Light Theme
+   ========================================================= */
+
+/* Theme Variables */
+.chatyplayer-root.chatyplayer-theme-light {
+  --cp-bg: #ffffff;
+  --cp-surface: #f3f4f6;
+  --cp-surface-light: #e5e7eb;
+  --cp-text: #111827;
+  --cp-text-muted: #6b7280;
+  --cp-primary: #2563eb;
+  --cp-primary-hover: #1d4ed8;
+  --cp-border: rgba(0, 0, 0, 0.1);
+  --cp-buffer: rgba(0, 0, 0, 0.2);
+  --cp-progress: #2563eb;
+}
+
+/* Player Background */
+.chatyplayer-root.chatyplayer-theme-light {
+  background: var(--cp-bg);
+  color: var(--cp-text);
+}
+
+/* Controls */
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-controls {
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.75),
+    transparent
+  );
+}
+
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-btn {
+  color: var(--cp-text);
+}
+
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-btn:focus-visible {
+  outline: 2px solid var(--cp-primary);
+  outline-offset: 2px;
+}
+
+/* Volume Slider */
+.chatyplayer-root.chatyplayer-theme-light
+  .chatyplayer-volume-slider::-webkit-slider-thumb {
+  background: var(--cp-primary);
+}
+
+.chatyplayer-root.chatyplayer-theme-light
+  .chatyplayer-volume-slider::-moz-range-thumb {
+  background: var(--cp-primary);
+}
+
+/* Timeline */
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-progress-wrapper {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-buffer {
+  background: var(--cp-buffer);
+}
+
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-progress {
+  background: var(--cp-progress);
+}
+
+/* Time */
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-time {
+  color: var(--cp-text-muted);
+}
+
+/* Tooltip */
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-tooltip {
+  background: #111827;
+  color: #ffffff;
+}
+
+/* Chapter Marker */
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-chapter-marker {
+  background: var(--cp-text);
+}
+
+/* Settings Panel */
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-settings-panel {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+}
+
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-settings-title {
+  color: var(--cp-text-muted);
+}
+
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-settings-btn {
+  color: var(--cp-text);
+}
+
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-settings-btn:hover {
+  background: var(--cp-surface-light);
+}
+
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-settings-btn.is-active {
+  background: rgba(37, 99, 235, 0.15);
+  color: var(--cp-primary);
+}
+
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-settings-select {
+  background: #ffffff;
+  color: var(--cp-text);
+  border: 1px solid var(--cp-border);
+}
+
+.chatyplayer-root.chatyplayer-theme-light
+  .chatyplayer-settings-select:focus-visible {
+  outline: 2px solid var(--cp-primary);
+  outline-offset: 2px;
+}
+
+/* Mini Player */
+.chatyplayer-root.chatyplayer-theme-light .chatyplayer-mini {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Theater Mode */
+.chatyplayer-root.chatyplayer-theme-light.chatyplayer-theater {
+  background: var(--cp-bg);
+}
