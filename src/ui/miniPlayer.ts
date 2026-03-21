@@ -1,13 +1,6 @@
 /**
  * ChatyPlayer v1.0
- * Mini Player (Production Ready Floating Mode)
- * ----------------------------------------
- * - Scroll activated mini player (stable)
- * - Sentinel-based observer (no flicker)
- * - Scroll lock to prevent jitter
- * - Draggable + snap to edges
- * - Touch + mouse support
- * - Lifecycle safe cleanup
+ * Mini Player (Production Ready - Final Stable)
  */
 
 import type { Player } from '../core/Player'
@@ -30,7 +23,7 @@ export function createMiniPlayer(
   let scrollLock = false
 
   /* ---------------------------
-     Sentinel (CRITICAL FIX)
+     Sentinel
   --------------------------- */
 
   const sentinel = document.createElement('div')
@@ -46,11 +39,11 @@ export function createMiniPlayer(
     if (isMini) return
 
     container.classList.add('chatyplayer-mini')
-
     container.style.cursor = 'grab'
     container.style.touchAction = 'none'
 
     isMini = true
+    state?.set?.('mini', true)
   }
 
   const deactivateMini = () => {
@@ -65,10 +58,11 @@ export function createMiniPlayer(
     container.style.cursor = ''
 
     isMini = false
+    state?.set?.('mini', false)
   }
 
   /* ---------------------------
-     Intersection Observer (FIXED)
+     Intersection Observer
   --------------------------- */
 
   const observer = new IntersectionObserver(
@@ -78,23 +72,17 @@ export function createMiniPlayer(
         if (scrollLock) return
 
         if (!entry.isIntersecting && !isMini) {
-
           scrollLock = true
           activateMini()
 
-          setTimeout(() => {
-            scrollLock = false
-          }, 150)
+          setTimeout(() => (scrollLock = false), 150)
         }
 
         if (entry.isIntersecting && isMini) {
-
           scrollLock = true
           deactivateMini()
 
-          setTimeout(() => {
-            scrollLock = false
-          }, 150)
+          setTimeout(() => (scrollLock = false), 150)
         }
       }
     },
@@ -108,19 +96,20 @@ export function createMiniPlayer(
   observer.observe(sentinel)
 
   /* ---------------------------
-     Drag Logic
+     Drag Logic (Improved)
   --------------------------- */
 
   let dragging = false
   let moved = false
   let offsetX = 0
   let offsetY = 0
+  let startX = 0
+  let startY = 0
   let activePointerId: number | null = null
 
   const DRAG_THRESHOLD = 5
 
   const onPointerDown = (e: PointerEvent) => {
-
     if (!isMini) return
 
     activePointerId = e.pointerId
@@ -129,6 +118,9 @@ export function createMiniPlayer(
 
     offsetX = e.clientX - rect.left
     offsetY = e.clientY - rect.top
+
+    startX = e.clientX
+    startY = e.clientY
 
     container.style.right = 'auto'
     container.style.bottom = 'auto'
@@ -144,7 +136,6 @@ export function createMiniPlayer(
   }
 
   const onPointerMove = (e: PointerEvent) => {
-
     if (!dragging || e.pointerId !== activePointerId) return
 
     const x = e.clientX - offsetX
@@ -157,8 +148,8 @@ export function createMiniPlayer(
     const safeY = Math.max(0, Math.min(y, maxY))
 
     if (!moved) {
-      const dx = Math.abs(e.movementX)
-      const dy = Math.abs(e.movementY)
+      const dx = Math.abs(e.clientX - startX)
+      const dy = Math.abs(e.clientY - startY)
 
       if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
         moved = true
@@ -170,7 +161,6 @@ export function createMiniPlayer(
   }
 
   const onPointerUp = (e: PointerEvent) => {
-
     if (!dragging || e.pointerId !== activePointerId) return
 
     dragging = false
@@ -186,11 +176,10 @@ export function createMiniPlayer(
   }
 
   /* ---------------------------
-     Snap to Screen Corner
+     Snap to Corner
   --------------------------- */
 
   const snapToCorner = () => {
-
     const rect = container.getBoundingClientRect()
 
     const screenWidth = window.innerWidth
@@ -223,19 +212,20 @@ export function createMiniPlayer(
   }
 
   /* ---------------------------
-     Restore on Click (FIXED)
+     Restore on Click (Safe)
   --------------------------- */
 
   const onClick = () => {
-
     if (!isMini || moved) return
 
     deactivateMini()
 
     setTimeout(() => {
-      container.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
+      const rect = container.getBoundingClientRect()
+
+      window.scrollBy({
+        top: rect.top - window.innerHeight / 2,
+        behavior: 'smooth'
       })
     }, 50)
   }
@@ -245,8 +235,9 @@ export function createMiniPlayer(
   --------------------------- */
 
   container.addEventListener('pointerdown', onPointerDown)
-  window.addEventListener('pointermove', onPointerMove)
+  window.addEventListener('pointermove', onPointerMove, { passive: true })
   window.addEventListener('pointerup', onPointerUp)
+  window.addEventListener('pointercancel', onPointerUp)
 
   container.addEventListener('click', onClick)
 
@@ -262,6 +253,7 @@ export function createMiniPlayer(
     container.removeEventListener('pointerdown', onPointerDown)
     window.removeEventListener('pointermove', onPointerMove)
     window.removeEventListener('pointerup', onPointerUp)
+    window.removeEventListener('pointercancel', onPointerUp)
 
     container.removeEventListener('click', onClick)
 

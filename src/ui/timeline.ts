@@ -1,15 +1,6 @@
 /**
  * ChatyPlayer v1.0
- * Timeline Module (Production Ready)
- * ----------------------------------------
- * - Seek bar
- * - Buffered progress
- * - Hover tooltip
- * - Optional thumbnail preview
- * - Preserves playback while seeking
- * - Prevents gesture conflicts
- * - Safe DOM creation
- * - Lifecycle-safe cleanup
+ * Timeline Module (Production Ready - Final Stable)
  */
 
 import type { Player } from '../core/Player';
@@ -28,9 +19,7 @@ export function createTimeline(
 
   const video = player.getVideo();
 
-  /* =========================================
-     DOM CREATION
-  ========================================= */
+  /* ================= DOM ================= */
 
   const timelineContainer = document.createElement('div');
   timelineContainer.className = 'chatyplayer-timeline';
@@ -60,25 +49,18 @@ export function createTimeline(
   timelineContainer.appendChild(progressWrapper);
   mountPoint.appendChild(timelineContainer);
 
-  /* =========================================
-     TOOLTIP + THUMBNAIL
-  ========================================= */
+  /* ================= TOOLTIP + THUMB ================= */
 
   const updateTooltip = createTooltip(player, progressWrapper, lifecycle);
   const updateThumbnail = createThumbnail(player, progressWrapper);
 
-  /* =========================================
-     INTERNAL STATE
-  ========================================= */
+  /* ================= STATE ================= */
 
   let isDragging = false;
 
-  /* =========================================
-     PROGRESS UPDATE
-  ========================================= */
+  /* ================= PROGRESS ================= */
 
   const updateProgress = (): void => {
-
     const duration = video.duration;
 
     if (!Number.isFinite(duration) || duration <= 0) return;
@@ -97,17 +79,16 @@ export function createTimeline(
   };
 
   const updateBuffer = (): void => {
-
     const duration = video.duration;
 
     if (
       !Number.isFinite(duration) ||
       duration <= 0 ||
+      !video.buffered ||
       video.buffered.length === 0
     ) return;
 
     try {
-
       const bufferedEnd =
         video.buffered.end(video.buffered.length - 1);
 
@@ -115,34 +96,34 @@ export function createTimeline(
 
       bufferBar.style.width = `${percent}%`;
 
-    } catch {
-      // ignore buffered range errors
-    }
+    } catch {}
   };
 
-  /* =========================================
-     SEEK HANDLING
-  ========================================= */
+  /* ================= SEEK ================= */
+
+  let seekRAF: number | null = null;
 
   const onSeekInput = (): void => {
+    if (seekRAF) cancelAnimationFrame(seekRAF);
 
-    const duration = video.duration;
+    seekRAF = requestAnimationFrame(() => {
 
-    if (!Number.isFinite(duration) || duration <= 0) return;
+      const duration = video.duration;
+      if (!Number.isFinite(duration) || duration <= 0) return;
 
-    const percent = parseFloat(seekInput.value);
+      const percent = parseFloat(seekInput.value);
+      if (!Number.isFinite(percent)) return;
 
-    if (!Number.isFinite(percent)) return;
+      const wasPlaying = !video.paused;
 
-    const wasPlaying = !video.paused;
+      const newTime = (percent / 100) * duration;
 
-    const newTime = (percent / 100) * duration;
+      player.seek(newTime);
 
-    player.seek(newTime);
-
-    if (wasPlaying) {
-      player.play().catch(() => {});
-    }
+      if (wasPlaying) {
+        player.play().catch(() => {});
+      }
+    });
   };
 
   const onDragStart = (): void => {
@@ -153,17 +134,13 @@ export function createTimeline(
     isDragging = false;
   };
 
-  /* =========================================
-     HOVER PREVIEW (Tooltip + Thumbnail)
-  ========================================= */
+  /* ================= HOVER / TOUCH ================= */
 
-  const onMouseMove = (event: MouseEvent): void => {
-
+  const handlePreview = (clientX: number) => {
     const rect = progressWrapper.getBoundingClientRect();
-
     if (!rect.width) return;
 
-    const offsetX = event.clientX - rect.left;
+    const offsetX = clientX - rect.left;
 
     const percent = Math.min(
       Math.max(offsetX / rect.width, 0),
@@ -171,79 +148,62 @@ export function createTimeline(
     );
 
     const duration = video.duration || 0;
-
     if (duration <= 0) return;
 
     const previewTime = percent * duration;
 
     updateTooltip(previewTime, offsetX);
-
-    if (updateThumbnail) {
-      updateThumbnail(previewTime, offsetX);
-    }
+    updateThumbnail?.(previewTime, offsetX);
   };
 
-  const onMouseLeave = (): void => {
+  const onPointerMove = (e: PointerEvent) => {
+    handlePreview(e.clientX);
+  };
+
+  const onPointerLeave = () => {
     updateTooltip(null);
   };
 
-  progressWrapper.addEventListener('mousemove', onMouseMove);
-  progressWrapper.addEventListener('mouseleave', onMouseLeave);
+  progressWrapper.addEventListener('pointermove', onPointerMove, { passive: true });
+  progressWrapper.addEventListener('pointerleave', onPointerLeave);
 
-  /* =========================================
-     EVENT BINDING
-  ========================================= */
+  /* ================= EVENTS ================= */
 
   seekInput.addEventListener('input', onSeekInput);
 
-  seekInput.addEventListener('mousedown', onDragStart);
-  seekInput.addEventListener('touchstart', onDragStart);
+  seekInput.addEventListener('pointerdown', onDragStart);
+  seekInput.addEventListener('pointerup', onDragEnd);
+  seekInput.addEventListener('pointercancel', onDragEnd);
 
-  seekInput.addEventListener('mouseup', onDragEnd);
-  seekInput.addEventListener('touchend', onDragEnd);
+  seekInput.addEventListener('click', (e) => e.stopPropagation());
 
-  // prevent gesture conflicts
-  seekInput.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
+  /* ================= VIDEO ================= */
 
-  /* =========================================
-     VIDEO EVENTS
-  ========================================= */
-
-  const onLoadedMetadata = (): void => {
+  const onLoadedMetadata = () => {
     updateProgress();
     updateBuffer();
   };
 
-  const onTimeUpdate = (): void => {
-    updateProgress();
-  };
-
-  const onProgress = (): void => {
-    updateBuffer();
-  };
+  const onTimeUpdate = updateProgress;
+  const onProgress = updateBuffer;
 
   video.addEventListener('loadedmetadata', onLoadedMetadata);
   video.addEventListener('timeupdate', onTimeUpdate);
   video.addEventListener('progress', onProgress);
 
-  /* =========================================
-     CLEANUP
-  ========================================= */
+  /* ================= CLEANUP ================= */
 
   lifecycle?.registerCleanup(() => {
 
+    if (seekRAF) cancelAnimationFrame(seekRAF);
+
     seekInput.removeEventListener('input', onSeekInput);
+    seekInput.removeEventListener('pointerdown', onDragStart);
+    seekInput.removeEventListener('pointerup', onDragEnd);
+    seekInput.removeEventListener('pointercancel', onDragEnd);
 
-    seekInput.removeEventListener('mousedown', onDragStart);
-    seekInput.removeEventListener('touchstart', onDragStart);
-
-    seekInput.removeEventListener('mouseup', onDragEnd);
-    seekInput.removeEventListener('touchend', onDragEnd);
-
-    progressWrapper.removeEventListener('mousemove', onMouseMove);
-    progressWrapper.removeEventListener('mouseleave', onMouseLeave);
+    progressWrapper.removeEventListener('pointermove', onPointerMove);
+    progressWrapper.removeEventListener('pointerleave', onPointerLeave);
 
     video.removeEventListener('loadedmetadata', onLoadedMetadata);
     video.removeEventListener('timeupdate', onTimeUpdate);

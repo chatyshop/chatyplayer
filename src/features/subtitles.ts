@@ -1,13 +1,6 @@
 /**
  * ChatyPlayer v1.0
- * Subtitles (WebVTT) Feature (Production Ready)
- * ----------------------------------------
- * - Safe URL sanitization
- * - Secure <track> creation
- * - Dynamic subtitle positioning
- * - Auto safe-area calculation
- * - Works with auto-hide controls
- * - Lifecycle safe cleanup
+ * Subtitles (WebVTT) Feature (Production Ready - Final Stable)
  */
 
 import type { Player } from '../core/Player'
@@ -37,7 +30,8 @@ function sanitizeURL(url: string): string | null {
 
     const parsed = new URL(url, base)
 
-    const allowedProtocols = ['http:', 'https:', 'blob:', 'data:']
+    // 🔒 Removed 'data:' for security
+    const allowedProtocols = ['http:', 'https:', 'blob:']
 
     if (!allowedProtocols.includes(parsed.protocol)) {
       console.warn('[ChatyPlayer] Blocked unsafe subtitle URL:', parsed.protocol)
@@ -47,11 +41,8 @@ function sanitizeURL(url: string): string | null {
     return parsed.href
 
   } catch {
-
     return null
-
   }
-
 }
 
 /* =========================================
@@ -70,6 +61,19 @@ export function initSubtitlesFeature(
   const container = player.getContainer()
 
   const trackElements: HTMLTrackElement[] = []
+
+  /* =========================================
+     Prevent Duplicate Tracks
+  ========================================= */
+
+  if (video.querySelector('track')) {
+    console.warn('[ChatyPlayer] Subtitle tracks already exist, skipping re-init')
+    return {
+      enableSubtitle: () => {},
+      disableSubtitles: () => {},
+      getAvailableSubtitles: () => []
+    }
+  }
 
   /* =========================================
      Create Track Elements
@@ -96,11 +100,9 @@ export function initSubtitlesFeature(
       }
 
       video.appendChild(track)
-
       trackElements.push(track)
 
     })
-
   }
 
   /* =========================================
@@ -120,11 +122,10 @@ export function initSubtitlesFeature(
         track.language === srclang
           ? 'showing'
           : 'disabled'
-
     }
 
+    state?.set?.('subtitle', srclang)
     events?.emit('subtitlechange', srclang)
-
   }
 
   /* =========================================
@@ -141,11 +142,10 @@ export function initSubtitlesFeature(
       if (!track) continue
 
       track.mode = 'disabled'
-
     }
 
+    state?.set?.('subtitle', null)
     events?.emit('subtitlechange', null)
-
   }
 
   /* =========================================
@@ -153,11 +153,7 @@ export function initSubtitlesFeature(
   ========================================= */
 
   const getAvailableSubtitles = (): string[] => {
-
-    return tracks
-      .map((t) => t.srclang)
-      .filter(Boolean)
-
+    return tracks.map((t) => t.srclang).filter(Boolean)
   }
 
   /* =========================================
@@ -172,20 +168,22 @@ export function initSubtitlesFeature(
     if (!controls) return -1
 
     const controlsHeight = controls.offsetHeight || 50
-
-    /* convert pixel height into cue line offset */
-
     const estimatedLines = Math.ceil(controlsHeight / 24)
 
     return -(estimatedLines + 1)
-
   }
 
   /* =========================================
-     Subtitle Position Controller
+     Subtitle Position Controller (Optimized)
   ========================================= */
 
+  let lastUpdate = 0
+
   const updateSubtitlePosition = (): void => {
+
+    const now = Date.now()
+    if (now - lastUpdate < 200) return
+    lastUpdate = now
 
     const controlsVisible =
       !container.classList.contains('hide-ui')
@@ -206,16 +204,15 @@ export function initSubtitlesFeature(
 
       for (let j = 0; j < cues.length; j++) {
 
-        const cue = cues[j] as VTTCue
-        if (!cue) continue
+        const cue = cues[j]
+
+        // ✅ Safe check instead of unsafe cast
+        if (!(cue instanceof VTTCue)) continue
 
         cue.snapToLines = true
         cue.line = safeLine
-
       }
-
     }
-
   }
 
   /* =========================================
@@ -225,12 +222,11 @@ export function initSubtitlesFeature(
   createTracks()
 
   const defaultTrack = tracks.find((t) => t.default)
-
   if (defaultTrack) {
     enableSubtitle(defaultTrack.srclang)
   }
 
-  /* update subtitle position during playback */
+  /* update subtitle position */
 
   container.addEventListener('mousemove', updateSubtitlePosition)
   container.addEventListener('mouseleave', updateSubtitlePosition)
@@ -255,21 +251,15 @@ export function initSubtitlesFeature(
     video.removeEventListener('loadedmetadata', updateSubtitlePosition)
 
     trackElements.forEach((track) => {
-
       if (track.parentNode === video) {
         video.removeChild(track)
       }
-
     })
-
   })
 
   return {
-
     enableSubtitle,
     disableSubtitles,
     getAvailableSubtitles
-
   }
-
 }

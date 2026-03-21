@@ -1,13 +1,12 @@
 /**
  * ChatyPlayer v1.0
- * Core Player Engine (Production Ready)
- * Player.ts
+ * Core Player Engine (Production Ready - FINAL)
  * ----------------------------------------
- * - Multi-source support
- * - Secure initialization
- * - Plugin system safe
- * - UI lifecycle safe
- * - Feature registry support
+ * - Mobile optimized (pointer events)
+ * - Memory leak safe
+ * - Network-aware preload
+ * - Secure source validation
+ * - Adaptive UI behavior
  */
 
 import { PlayerConfig, VideoSource } from './config'
@@ -33,6 +32,11 @@ private events: EventEmitter
 private destroyed = false
 private activeFeatures: PlayerFeature[] = []
 private hideTimeout?: number
+
+// event handlers (for cleanup)
+private handleUIShow = () => {}
+private handlePause = () => {}
+private handlePlay = () => {}
 
 public readonly api
 
@@ -72,7 +76,14 @@ private createVideoElement(): HTMLVideoElement {
 
 const video = document.createElement('video')
 
-video.preload = this.config.preload ?? 'metadata'
+// 🌐 Network-aware preload (mobile optimization)
+const connection = (navigator as any)?.connection
+if (connection?.saveData || connection?.effectiveType === '2g') {
+  video.preload = 'none'
+} else {
+  video.preload = this.config.preload ?? 'metadata'
+}
+
 video.playsInline = true
 video.controls = false
 video.crossOrigin = 'anonymous'
@@ -83,8 +94,8 @@ if (this.config.poster) {
 
 const source = this.resolveInitialSource()
 
-if (!source) {
-  throw new Error('[ChatyPlayer] No supported video source found.')
+if (!source || typeof source.src !== 'string' || !source.src.trim()) {
+  throw new Error('[ChatyPlayer] No valid video source found.')
 }
 
 video.src = source.src
@@ -171,12 +182,15 @@ try {
 }
 
 /* =========================================
-Auto Hide Controls
+Auto Hide Controls (Mobile Optimized)
 ========================================= */
 
 private initAutoHide(): void {
 
-const showUI = () => {
+const isMobile = window.matchMedia('(pointer: coarse)').matches
+const hideDelay = isMobile ? 3500 : 2000
+
+this.handleUIShow = () => {
 
   if (this.destroyed) return
 
@@ -187,23 +201,25 @@ const showUI = () => {
   }
 
   this.hideTimeout = window.setTimeout(() => {
-
     if (!this.video.paused) {
       this.container.classList.add('hide-ui')
     }
-
-  }, 2000)
+  }, hideDelay)
 
 }
 
-this.wrapper.addEventListener('mousemove', showUI)
-this.wrapper.addEventListener('touchstart', showUI)
-
-this.video.addEventListener('pause', () => {
+this.handlePause = () => {
   this.container.classList.remove('hide-ui')
-})
+}
 
-this.video.addEventListener('play', showUI)
+this.handlePlay = this.handleUIShow
+
+// ✅ Pointer events (unified mobile + desktop)
+this.wrapper.addEventListener('pointermove', this.handleUIShow, { passive: true })
+this.wrapper.addEventListener('pointerdown', this.handleUIShow, { passive: true })
+
+this.video.addEventListener('pause', this.handlePause)
+this.video.addEventListener('play', this.handlePlay)
 
 }
 
@@ -236,7 +252,7 @@ video.addEventListener('loadedmetadata', () => {
 })
 
 video.addEventListener('error', () => {
-  this.events.emit('error')
+  this.events.emit('error', video.error)
 })
 
 }
@@ -254,17 +270,10 @@ const features = this.config.features ?? builtInFeatures
 for (const feature of features) {
 
   try {
-
     feature.init(this)
     this.activeFeatures.push(feature)
-
   } catch (error) {
-
-    console.error(
-      `[ChatyPlayer] Feature "${feature.name}" failed.`,
-      error
-    )
-
+    console.error(`[ChatyPlayer] Feature "${feature.name}" failed.`, error)
   }
 
 }
@@ -276,13 +285,11 @@ Public Controls
 ========================================= */
 
 public async play(): Promise<void> {
-
 try {
   await this.video.play()
 } catch {
   /* autoplay safe fail */
 }
-
 }
 
 public pause(): void {
@@ -345,7 +352,7 @@ return this.events
 }
 
 /* =========================================
-Destroy Lifecycle
+Destroy Lifecycle (Leak-Free)
 ========================================= */
 
 public destroy(): void {
@@ -358,12 +365,18 @@ if (this.hideTimeout) {
   window.clearTimeout(this.hideTimeout)
 }
 
-for (const feature of this.activeFeatures) {
+// ✅ remove UI listeners
+this.wrapper.removeEventListener('pointermove', this.handleUIShow)
+this.wrapper.removeEventListener('pointerdown', this.handleUIShow)
 
+this.video.removeEventListener('pause', this.handlePause)
+this.video.removeEventListener('play', this.handlePlay)
+
+// features cleanup
+for (const feature of this.activeFeatures) {
   try {
     feature.destroy?.(this)
   } catch {}
-
 }
 
 this.video.removeAttribute('src')

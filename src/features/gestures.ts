@@ -1,16 +1,16 @@
 /**
  * ChatyPlayer v1.0
- * Gesture Controls Feature (Production Ready)
+ * Gesture Controls Feature (Production Ready - Final Stable)
  */
 
 import type { Player } from '../core/Player'
 import type { LifecycleManager } from '../core/lifecycle'
 import type { StateManager } from '../core/state'
 
-const DOUBLE_TAP_DELAY = 300
+const DOUBLE_TAP_DELAY = 220
 const SEEK_STEP = 10
 const SWIPE_SENSITIVITY = 300
-const SWIPE_THRESHOLD = 10
+const SWIPE_THRESHOLD = 20
 
 export function initGesturesFeature(
   player: Player,
@@ -21,8 +21,13 @@ export function initGesturesFeature(
   const container = player.getContainer()
   const video = player.getVideo()
 
+  const isTouchDevice =
+    typeof window !== 'undefined' &&
+    ('ontouchstart' in window || navigator.maxTouchPoints > 0)
+
   let lastTapTime = 0
   let clickTimer: number | null = null
+  let tapTimer: number | null = null
 
   let touchStartY = 0
   let touchStartVolume = 0
@@ -45,19 +50,14 @@ export function initGesturesFeature(
         el.classList.contains('chatyplayer-timeline-layer') ||
         el.classList.contains('chatyplayer-settings-panel') ||
         el.classList.contains('chatyplayer-subtitle-menu')
-      ) {
-        return true
-      }
+      ) return true
 
       if (
         el.tagName === 'BUTTON' ||
         el.tagName === 'INPUT' ||
         el.tagName === 'SELECT' ||
         el.tagName === 'TEXTAREA'
-      ) {
-        return true
-      }
-
+      ) return true
     }
 
     return false
@@ -76,11 +76,12 @@ export function initGesturesFeature(
   }
 
   /* =========================================
-     Mouse Click
+     Mouse Click (Desktop only)
   ========================================= */
 
   const onClick = (e: MouseEvent): void => {
 
+    if (isTouchDevice) return
     if (isInteractiveEvent(e)) return
 
     const rect = container.getBoundingClientRect()
@@ -113,7 +114,6 @@ export function initGesturesFeature(
   const onTouchStart = (e: TouchEvent): void => {
 
     if (isInteractiveEvent(e)) return
-
     if (e.touches.length !== 1) return
 
     const touch = e.touches[0]
@@ -137,11 +137,15 @@ export function initGesturesFeature(
 
     const deltaY = touchStartY - touch.clientY
 
-    if (Math.abs(deltaY) > SWIPE_THRESHOLD) {
+    if (!isSwiping && Math.abs(deltaY) > SWIPE_THRESHOLD) {
       isSwiping = true
     }
 
     if (!isSwiping) return
+
+    if (e.cancelable) {
+     e.preventDefault()
+     }
 
     const volumeChange = deltaY / SWIPE_SENSITIVITY
 
@@ -155,7 +159,7 @@ export function initGesturesFeature(
   }
 
   /* =========================================
-     Touch End
+     Touch End (FIXED LOGIC)
   ========================================= */
 
   const onTouchEnd = (e: TouchEvent): void => {
@@ -172,7 +176,13 @@ export function initGesturesFeature(
     const rect = container.getBoundingClientRect()
     const isLeft = touch.clientX < rect.left + rect.width / 2
 
+    // DOUBLE TAP
     if (delta < DOUBLE_TAP_DELAY) {
+
+      if (tapTimer !== null) {
+        window.clearTimeout(tapTimer)
+        tapTimer = null
+      }
 
       if (isLeft) {
         player.seek(Math.max(0, video.currentTime - SEEK_STEP))
@@ -182,7 +192,11 @@ export function initGesturesFeature(
 
     } else {
 
-      togglePlayback()
+      // SINGLE TAP (DELAYED)
+      tapTimer = window.setTimeout(() => {
+        togglePlayback()
+        tapTimer = null
+      }, DOUBLE_TAP_DELAY)
 
     }
 
@@ -190,15 +204,26 @@ export function initGesturesFeature(
   }
 
   /* =========================================
+     Touch Cancel
+  ========================================= */
+
+  const onTouchCancel = (): void => {
+    isSwiping = false
+  }
+
+  /* =========================================
      Event Binding
   ========================================= */
 
   container.style.userSelect = 'none'
+  container.style.touchAction = 'manipulation'
 
   container.addEventListener('click', onClick)
+
   container.addEventListener('touchstart', onTouchStart, { passive: true })
-  container.addEventListener('touchmove', onTouchMove, { passive: true })
+  container.addEventListener('touchmove', onTouchMove, { passive: false })
   container.addEventListener('touchend', onTouchEnd)
+  container.addEventListener('touchcancel', onTouchCancel)
 
   /* =========================================
      Cleanup
@@ -211,10 +236,16 @@ export function initGesturesFeature(
       clickTimer = null
     }
 
+    if (tapTimer !== null) {
+      window.clearTimeout(tapTimer)
+      tapTimer = null
+    }
+
     container.removeEventListener('click', onClick)
     container.removeEventListener('touchstart', onTouchStart)
     container.removeEventListener('touchmove', onTouchMove)
     container.removeEventListener('touchend', onTouchEnd)
+    container.removeEventListener('touchcancel', onTouchCancel)
 
   })
 }

@@ -1,15 +1,6 @@
 /**
  * ChatyPlayer v1.0
- * Quality Switching Feature (Production Ready)
- * ----------------------------------------
- * - Resolution based quality switching
- * - Supports mixed formats (mp4/webm/ogg)
- * - Auto quality mode (buffer based)
- * - Preserves playback position
- * - Preserves play state
- * - Prevents rapid switching
- * - Safe lifecycle cleanup
- * - Emits qualitychange events
+ * Quality Switching Feature (Production Ready - Optimized)
  */
 
 import type { Player } from '../core/Player'
@@ -33,40 +24,42 @@ export function initQualityFeature(
   const sources: VideoSource[] =
     Array.isArray(config.sources) ? config.sources : []
 
-  /* initial quality */
+  /* =========================================
+     STATE
+  ========================================= */
 
-  let currentQuality: QualityLabel =
-  sources[0]?.label ?? 'auto'
-
+  let currentQuality: QualityLabel = 'auto'
   let autoMode = true
   let switching = false
 
+  let lastAutoSwitch = 0
+  const AUTO_SWITCH_COOLDOWN = 8000
+
+  const isMobile =
+    typeof navigator !== 'undefined' &&
+    /Mobi|Android|iPhone/i.test(navigator.userAgent)
+
   /* =========================================
-     Get Available Qualities
+     HELPERS
   ========================================= */
 
   const getAvailableQualities = (): QualityLabel[] => {
-
     if (!sources.length) return []
-
     return ['auto', ...sources.map(s => s.label)]
-
   }
 
   const getCurrentQuality = (): QualityLabel => currentQuality
 
   /* =========================================
-     Switch Source
+     SWITCH SOURCE (SAFE)
   ========================================= */
 
   const switchSource = (source: VideoSource): void => {
 
-    if (!source) return
-    if (switching) return
+    if (!source || switching) return
 
-    /* prevent switching to same source */
-
-    if (video.src.includes(source.src)) return
+    // Prevent switching to same source (safe check)
+    if (video.currentSrc === source.src) return
 
     switching = true
 
@@ -78,8 +71,11 @@ export function initQualityFeature(
 
     video.pause()
 
-    video.src = source.src
-    video.load()
+    // Only reload if different
+    if (video.src !== source.src) {
+      video.src = source.src
+      video.load()
+    }
 
     const restorePlayback = () => {
 
@@ -95,24 +91,21 @@ export function initQualityFeature(
         playing: wasPlaying
       })
 
-      events?.emit('qualitychange' as any, source.label)
+      events?.emit?.('qualitychange', source.label)
 
       video.removeEventListener('loadedmetadata', restorePlayback)
 
-      /* release switching lock */
-
+      // release lock safely
       setTimeout(() => {
         switching = false
       }, 2000)
-
     }
 
     video.addEventListener('loadedmetadata', restorePlayback)
-
   }
 
   /* =========================================
-     Manual Quality
+     MANUAL QUALITY
   ========================================= */
 
   const setQuality = (label: QualityLabel): void => {
@@ -124,18 +117,16 @@ export function initQualityFeature(
     }
 
     const source = sources.find(s => s.label === label)
-
     if (!source) return
 
     autoMode = false
     currentQuality = label
 
     switchSource(source)
-
   }
 
   /* =========================================
-     Auto Quality Logic
+     AUTO QUALITY (SMART + MOBILE SAFE)
   ========================================= */
 
   const handleBuffering = (): void => {
@@ -143,65 +134,86 @@ export function initQualityFeature(
     if (!autoMode) return
     if (switching) return
     if (sources.length < 2) return
-    if (!video.buffered.length) return
+    if (!video.buffered || video.buffered.length === 0) return
+
+    const now = Date.now()
+
+    // prevent aggressive switching
+    if (now - lastAutoSwitch < AUTO_SWITCH_COOLDOWN) return
 
     const buffer =
       video.buffered.end(video.buffered.length - 1) - video.currentTime
 
-    if (buffer > 15) increaseQuality()
-
-    if (buffer < 3) decreaseQuality()
-
+    if (isMobile) {
+      if (buffer > 25) {
+        increaseQuality()
+        lastAutoSwitch = now
+      }
+      if (buffer < 5) {
+        decreaseQuality()
+        lastAutoSwitch = now
+      }
+    } else {
+      if (buffer > 15) {
+        increaseQuality()
+        lastAutoSwitch = now
+      }
+      if (buffer < 3) {
+        decreaseQuality()
+        lastAutoSwitch = now
+      }
+    }
   }
+
+  /* =========================================
+     QUALITY STEPS
+  ========================================= */
 
   const increaseQuality = (): void => {
 
     const index = sources.findIndex(s => s.label === currentQuality)
-
     if (index < 0) return
 
     const next = sources[index + 1]
-
     if (!next) return
 
     currentQuality = next.label
-
     switchSource(next)
-
   }
 
   const decreaseQuality = (): void => {
 
     const index = sources.findIndex(s => s.label === currentQuality)
-
     if (index <= 0) return
 
     const prev = sources[index - 1]
-
     if (!prev) return
 
     currentQuality = prev.label
-
     switchSource(prev)
-
   }
+
+  /* =========================================
+     EVENTS
+  ========================================= */
 
   video.addEventListener('timeupdate', handleBuffering)
 
   /* =========================================
-     Cleanup
+     CLEANUP
   ========================================= */
 
   lifecycle?.registerCleanup(() => {
-
     video.removeEventListener('timeupdate', handleBuffering)
-
   })
+
+  /* =========================================
+     PUBLIC API
+  ========================================= */
 
   return {
     getAvailableQualities,
     getCurrentQuality,
     setQuality
   }
-
 }

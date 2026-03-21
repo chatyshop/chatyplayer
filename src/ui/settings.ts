@@ -1,6 +1,6 @@
 /**
  * ChatyPlayer v1.0
- * Settings Panel Module (Production Ready)
+ * Settings Panel Module (Production Ready - Final Stable)
  */
 
 import type { Player } from '../core/Player'
@@ -18,6 +18,8 @@ export function createSettings(
   const container = player.getContainer()
   const events = player.getEvents()
 
+  if (!container) return
+
   /* =========================================
      ROOT
   ========================================= */
@@ -34,24 +36,53 @@ export function createSettings(
   const panel = document.createElement('div')
   panel.className = 'chatyplayer-settings-panel'
   panel.setAttribute('aria-hidden', 'true')
+  panel.setAttribute('role', 'menu')
 
   wrapper.appendChild(toggleBtn)
   wrapper.appendChild(panel)
   mountPoint.appendChild(wrapper)
 
   /* =========================================
-     PANEL VISIBILITY
+     PANEL STATE
   ========================================= */
 
   let isOpen = false
 
-  const togglePanel = () => {
-    isOpen = !isOpen
-    panel.classList.toggle('is-open', isOpen)
-    panel.setAttribute('aria-hidden', isOpen ? 'false' : 'true')
+  const openPanel = () => {
+    isOpen = true
+    panel.classList.add('is-open')
+    panel.setAttribute('aria-hidden', 'false')
   }
 
-  toggleBtn.addEventListener('click', togglePanel)
+  const closePanel = () => {
+    isOpen = false
+    panel.classList.remove('is-open')
+    panel.setAttribute('aria-hidden', 'true')
+  }
+
+  const togglePanel = () => {
+    isOpen ? closePanel() : openPanel()
+  }
+
+  toggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation()
+    togglePanel()
+  })
+
+  /* =========================================
+     OUTSIDE CLICK (CRITICAL FIX)
+  ========================================= */
+
+  const onOutsideClick = (e: Event) => {
+    const target = e.target as Node | null
+    if (!target) return
+
+    if (!panel.contains(target) && !toggleBtn.contains(target)) {
+      closePanel()
+    }
+  }
+
+  document.addEventListener('pointerdown', onOutsideClick)
 
   /* =========================================
      MENU SYSTEM
@@ -60,18 +91,15 @@ export function createSettings(
   const menus: Record<string, HTMLElement> = {}
 
   const showMenu = (name: string) => {
-
     Object.values(menus).forEach(menu => {
       menu.style.display = 'none'
     })
 
     const target = menus[name]
     if (target) target.style.display = 'block'
-
   }
 
   const createMenu = (name: string): HTMLElement => {
-
     const menu = document.createElement('div')
     menu.className = 'chatyplayer-settings-menu'
     menu.style.display = 'none'
@@ -80,11 +108,9 @@ export function createSettings(
     menus[name] = menu
 
     return menu
-
   }
 
   const createBackButton = (menu: HTMLElement) => {
-
     const back = document.createElement('button')
     back.className = 'chatyplayer-settings-btn'
     back.textContent = '← Back'
@@ -97,7 +123,6 @@ export function createSettings(
     lifecycle?.registerCleanup(() => {
       back.removeEventListener('click', handler)
     })
-
   }
 
   /* =========================================
@@ -107,7 +132,6 @@ export function createSettings(
   const mainMenu = createMenu('main')
 
   const createMenuButton = (label: string, targetMenu: string) => {
-
     const btn = document.createElement('button')
     btn.className = 'chatyplayer-settings-btn'
     btn.textContent = `${label} ›`
@@ -121,7 +145,6 @@ export function createSettings(
     })
 
     mainMenu.appendChild(btn)
-
   }
 
   createMenuButton('Playback', 'playback')
@@ -136,106 +159,83 @@ export function createSettings(
   createBackButton(playbackMenu)
 
   /* =========================================
-     QUALITY DROPDOWN
+     QUALITY
   ========================================= */
 
   events.on('ready', () => {
 
     const qualityAPI = (player as any).quality
-
     if (!qualityAPI?.getAvailableQualities) return
 
     const qualities = qualityAPI.getAvailableQualities()
-
     if (!Array.isArray(qualities) || qualities.length <= 1) return
 
-    const qualityWrapper = document.createElement('div')
+    const wrapper = document.createElement('div')
 
-    const qualityLabel = document.createElement('div')
-    qualityLabel.textContent = 'Quality'
+    const label = document.createElement('div')
+    label.textContent = 'Quality'
 
-    const qualitySelect = document.createElement('select')
-    qualitySelect.className = 'chatyplayer-settings-select'
+    const select = document.createElement('select')
+    select.className = 'chatyplayer-settings-select'
 
     qualities.forEach((q: string) => {
-
       const opt = document.createElement('option')
       opt.value = q
-
-      opt.textContent =
-        q === 'auto'
-          ? 'Auto'
-          : q.toUpperCase()
-
-      qualitySelect.appendChild(opt)
-
+      opt.textContent = q === 'auto' ? 'Auto' : q.toUpperCase()
+      select.appendChild(opt)
     })
 
-    const currentQuality = qualityAPI.getCurrentQuality?.()
+    select.value = qualityAPI.getCurrentQuality?.() ?? 'auto'
 
-    if (currentQuality) {
-      qualitySelect.value = currentQuality
+    const change = () => {
+      qualityAPI.setQuality?.(select.value)
+      closePanel()
     }
 
-    const changeQuality = () => {
-      qualityAPI.setQuality?.(qualitySelect.value)
-    }
+    select.addEventListener('change', change)
 
-    qualitySelect.addEventListener('change', changeQuality)
+    // sync externally
+    events.on?.('qualitychange', (q: string) => {
+      select.value = q
+    })
 
-    qualityWrapper.appendChild(qualityLabel)
-    qualityWrapper.appendChild(qualitySelect)
-
-    playbackMenu.appendChild(qualityWrapper)
+    wrapper.appendChild(label)
+    wrapper.appendChild(select)
+    playbackMenu.appendChild(wrapper)
 
     lifecycle?.registerCleanup(() => {
-      qualitySelect.removeEventListener('change', changeQuality)
+      select.removeEventListener('change', change)
     })
-
   })
 
   /* =========================================
-     PLAYBACK SPEED
+     SPEED
   ========================================= */
 
   const speedWrapper = document.createElement('div')
 
-  const speedLabel = document.createElement('div')
-  speedLabel.textContent = 'Playback Speed'
-
   const speedSelect = document.createElement('select')
   speedSelect.className = 'chatyplayer-settings-select'
 
-  const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
-
-  speeds.forEach(rate => {
-
-    const option = document.createElement('option')
-    option.value = String(rate)
-    option.textContent = `${rate}x`
-
-    if (rate === 1) option.selected = true
-
-    speedSelect.appendChild(option)
-
+  ;[0.5, 0.75, 1, 1.25, 1.5, 2].forEach(rate => {
+    const opt = document.createElement('option')
+    opt.value = String(rate)
+    opt.textContent = `${rate}x`
+    if (rate === 1) opt.selected = true
+    speedSelect.appendChild(opt)
   })
 
   const changeSpeed = () => {
-
-    const value = parseFloat(speedSelect.value)
-
-    if (!Number.isFinite(value) || value <= 0) return
-
-    player.setSpeed(value)
-    state?.set?.('playing', !video.paused)
-
+    const v = parseFloat(speedSelect.value)
+    if (!Number.isFinite(v) || v <= 0) return
+    player.setSpeed(v)
+    closePanel()
   }
 
   speedSelect.addEventListener('change', changeSpeed)
 
-  speedWrapper.appendChild(speedLabel)
+  speedWrapper.appendChild(document.createTextNode('Playback Speed'))
   speedWrapper.appendChild(speedSelect)
-
   playbackMenu.appendChild(speedWrapper)
 
   /* =========================================
@@ -248,6 +248,7 @@ export function createSettings(
 
   const toggleLoop = () => {
     video.loop = !video.loop
+    closePanel()
   }
 
   loopBtn.addEventListener('click', toggleLoop)
@@ -265,32 +266,24 @@ export function createSettings(
   pipBtn.textContent = 'Picture in Picture'
 
   const pipSupported =
-    typeof document !== 'undefined' &&
     'pictureInPictureEnabled' in document &&
     typeof (video as any).requestPictureInPicture === 'function'
 
   if (!pipSupported) pipBtn.disabled = true
 
   const togglePiP = async () => {
-
     if (!pipSupported) return
 
     try {
-
       if (!document.pictureInPictureElement) {
-
         await (video as any).requestPictureInPicture()
         state?.set?.('pip', true)
-
       } else {
-
         await document.exitPictureInPicture()
         state?.set?.('pip', false)
-
       }
-
+      closePanel()
     } catch {}
-
   }
 
   pipBtn.addEventListener('click', togglePiP)
@@ -307,32 +300,27 @@ export function createSettings(
   theaterBtn.className = 'chatyplayer-settings-btn'
   theaterBtn.textContent = 'Theater Mode'
 
-  const toggleTheater = () => {
-    (player as any).toggleTheater?.()
-  }
+  theaterBtn.addEventListener('click', () => {
+    ;(player as any).toggleTheater?.()
+    closePanel()
+  })
 
-  theaterBtn.addEventListener('click', toggleTheater)
   viewMenu.appendChild(theaterBtn)
 
   const miniBtn = document.createElement('button')
   miniBtn.className = 'chatyplayer-settings-btn'
   miniBtn.textContent = 'Mini Player'
 
-  const toggleMini = () => {
-
+  miniBtn.addEventListener('click', () => {
     container.classList.toggle('chatyplayer-mini')
+    state?.set?.('mini', container.classList.contains('chatyplayer-mini'))
+    closePanel()
+  })
 
-    const enabled = container.classList.contains('chatyplayer-mini')
-
-    state?.set?.('mini', enabled)
-
-  }
-
-  miniBtn.addEventListener('click', toggleMini)
   viewMenu.appendChild(miniBtn)
 
   /* =========================================
-     INITIAL STATE
+     INIT
   ========================================= */
 
   showMenu('main')
@@ -344,12 +332,13 @@ export function createSettings(
   lifecycle?.registerCleanup(() => {
 
     toggleBtn.removeEventListener('click', togglePanel)
+    document.removeEventListener('pointerdown', onOutsideClick)
+
     speedSelect.removeEventListener('change', changeSpeed)
     loopBtn.removeEventListener('click', toggleLoop)
     pipBtn.removeEventListener('click', togglePiP)
-    theaterBtn.removeEventListener('click', toggleTheater)
-    miniBtn.removeEventListener('click', toggleMini)
+    theaterBtn.removeEventListener('click', () => {})
+    miniBtn.removeEventListener('click', () => {})
 
   })
-
 }
