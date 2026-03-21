@@ -165,34 +165,34 @@ function ae(n, t, i, e) {
   };
   y.addEventListener("click", l);
   const u = {}, h = (P) => {
-    Object.values(u).forEach((R) => {
-      R.style.display = "none";
+    Object.values(u).forEach((V) => {
+      V.style.display = "none";
     });
     const k = u[P];
     k && (k.style.display = "block");
-  }, v = (P) => {
+  }, g = (P) => {
     const k = document.createElement("div");
     return k.className = "chatyplayer-settings-menu", k.style.display = "none", c.appendChild(k), u[P] = k, k;
-  }, m = (P) => {
+  }, f = (P) => {
     const k = document.createElement("button");
     k.className = "chatyplayer-settings-btn", k.textContent = "← Back";
-    const R = () => h("main");
-    k.addEventListener("click", R), P.appendChild(k);
-  }, d = v("main"), f = (P, k) => {
-    const R = document.createElement("button");
-    R.className = "chatyplayer-settings-btn", R.textContent = `${P} ›`;
+    const V = () => h("main");
+    k.addEventListener("click", V), P.appendChild(k);
+  }, d = g("main"), m = (P, k) => {
+    const V = document.createElement("button");
+    V.className = "chatyplayer-settings-btn", V.textContent = `${P} ›`;
     const W = () => h(k);
-    R.addEventListener("click", W), d.appendChild(R);
+    V.addEventListener("click", W), d.appendChild(V);
   };
-  f("Playback", "playback"), f("Player", "player"), f("View", "view");
-  const E = v("playback");
-  m(E), s.on("ready", () => {
+  m("Playback", "playback"), m("Player", "player"), m("View", "view");
+  const v = g("playback");
+  f(v), s.on("ready", () => {
     var K;
     const P = n.quality;
     if (!(P != null && P.getAvailableQualities)) return;
     const k = P.getAvailableQualities();
     if (!Array.isArray(k) || k.length <= 1) return;
-    const R = document.createElement("div"), W = document.createElement("div");
+    const V = document.createElement("div"), W = document.createElement("div");
     W.textContent = "Quality";
     const D = document.createElement("select");
     D.className = "chatyplayer-settings-select", k.forEach((z) => {
@@ -205,10 +205,10 @@ function ae(n, t, i, e) {
       var z;
       (z = P.setQuality) == null || z.call(P, D.value);
     };
-    D.addEventListener("change", ie), R.appendChild(W), R.appendChild(D), E.appendChild(R);
+    D.addEventListener("change", ie), V.appendChild(W), V.appendChild(D), v.appendChild(V);
   });
-  const b = document.createElement("div"), g = document.createElement("div");
-  g.textContent = "Playback Speed";
+  const E = document.createElement("div"), b = document.createElement("div");
+  b.textContent = "Playback Speed";
   const w = document.createElement("select");
   w.className = "chatyplayer-settings-select", [0.5, 0.75, 1, 1.25, 1.5, 2].forEach((P) => {
     const k = document.createElement("option");
@@ -218,19 +218,19 @@ function ae(n, t, i, e) {
     const P = parseFloat(w.value);
     !Number.isFinite(P) || P <= 0 || n.setSpeed(P);
   };
-  w.addEventListener("change", L), b.appendChild(g), b.appendChild(w), E.appendChild(b);
+  w.addEventListener("change", L), E.appendChild(b), E.appendChild(w), v.appendChild(E);
   const T = document.createElement("button");
   T.className = "chatyplayer-settings-btn", T.textContent = "Toggle Loop";
   const M = () => {
     r.loop = !r.loop;
   };
-  T.addEventListener("click", M), E.appendChild(T);
-  const I = v("player");
-  m(I);
-  const S = document.createElement("button");
-  S.className = "chatyplayer-settings-btn", S.textContent = "Picture in Picture";
+  T.addEventListener("click", M), v.appendChild(T);
+  const I = g("player");
+  f(I);
+  const x = document.createElement("button");
+  x.className = "chatyplayer-settings-btn", x.textContent = "Picture in Picture";
   const N = typeof document != "undefined" && "pictureInPictureEnabled" in document && typeof r.requestPictureInPicture == "function";
-  N || (S.disabled = !0);
+  N || (x.disabled = !0);
   const O = async () => {
     var P, k;
     if (N)
@@ -239,22 +239,22 @@ function ae(n, t, i, e) {
       } catch {
       }
   };
-  S.addEventListener("click", O), I.appendChild(S);
-  const x = v("view");
-  m(x);
+  x.addEventListener("click", O), I.appendChild(x);
+  const S = g("view");
+  f(S);
   const F = document.createElement("button");
   F.className = "chatyplayer-settings-btn", F.textContent = "Theater Mode";
   const A = () => {
     var P;
     (P = n.toggleTheater) == null || P.call(n);
   };
-  F.addEventListener("click", A), x.appendChild(F);
-  const V = document.createElement("button");
-  V.className = "chatyplayer-settings-btn", V.textContent = "Mini Player";
+  F.addEventListener("click", A), S.appendChild(F);
+  const R = document.createElement("button");
+  R.className = "chatyplayer-settings-btn", R.textContent = "Mini Player";
   const _ = () => {
     o.classList.toggle("chatyplayer-mini"), o.classList.contains("chatyplayer-mini");
   };
-  V.addEventListener("click", _), x.appendChild(V), h("main");
+  R.addEventListener("click", _), S.appendChild(R), h("main");
 }
 const J = "http://www.w3.org/2000/svg";
 function B(n, t) {
@@ -329,74 +329,74 @@ function ce(n, t, i, e) {
   c.addEventListener("click", p), r.addEventListener("play", l), r.addEventListener("pause", u);
   const h = document.createElement("span");
   h.className = "chatyplayer-time-inline", h.textContent = "0:00 / 0:00";
-  const v = (x) => {
-    if (!Number.isFinite(x) || x < 0) return "0:00";
-    const F = Math.floor(x / 60), A = Math.floor(x % 60);
+  const g = (S) => {
+    if (!Number.isFinite(S) || S < 0) return "0:00";
+    const F = Math.floor(S / 60), A = Math.floor(S % 60);
     return `${F}:${A.toString().padStart(2, "0")}`;
-  }, m = () => {
-    const x = v(r.currentTime), F = v(r.duration);
-    h.textContent = `${x} / ${F}`;
+  }, f = () => {
+    const S = g(r.currentTime), F = g(r.duration);
+    h.textContent = `${S} / ${F}`;
   };
-  r.addEventListener("timeupdate", m), r.addEventListener("loadedmetadata", m);
+  r.addEventListener("timeupdate", f), r.addEventListener("loadedmetadata", f);
   const d = document.createElement("div");
   d.className = "chatyplayer-volume";
-  const f = document.createElement("button");
-  f.className = "chatyplayer-btn chatyplayer-mute", f.type = "button", f.setAttribute("aria-label", "Mute");
-  const E = document.createElement("input");
-  E.type = "range", E.min = "0", E.max = "1", E.step = "0.01", E.value = String(r.volume), E.className = "chatyplayer-volume-slider", E.setAttribute("aria-label", "Volume");
+  const m = document.createElement("button");
+  m.className = "chatyplayer-btn chatyplayer-mute", m.type = "button", m.setAttribute("aria-label", "Mute");
+  const v = document.createElement("input");
+  v.type = "range", v.min = "0", v.max = "1", v.step = "0.01", v.value = String(r.volume), v.className = "chatyplayer-volume-slider", v.setAttribute("aria-label", "Volume");
+  const E = () => {
+    m.innerHTML = "", r.muted || r.volume === 0 ? m.appendChild(U.mute()) : m.appendChild(U.volume());
+  };
+  E();
   const b = () => {
-    f.innerHTML = "", r.muted || r.volume === 0 ? f.appendChild(U.mute()) : f.appendChild(U.volume());
-  };
-  b();
-  const g = () => {
-    E.value = String(r.muted ? 0 : r.volume), b();
+    v.value = String(r.muted ? 0 : r.volume), E();
   }, w = () => {
-    r.muted = !r.muted, g();
+    r.muted = !r.muted, b();
   }, C = () => {
-    const x = parseFloat(E.value);
-    Number.isFinite(x) && (n.setVolume(x), r.muted = x === 0, g());
+    const S = parseFloat(v.value);
+    Number.isFinite(S) && (n.setVolume(S), r.muted = S === 0, b());
   };
-  f.addEventListener("click", w), E.addEventListener("input", C), r.addEventListener("volumechange", g), d.appendChild(f), d.appendChild(E);
+  m.addEventListener("click", w), v.addEventListener("input", C), r.addEventListener("volumechange", b), d.appendChild(m), d.appendChild(v);
   const L = document.createElement("button");
   L.className = "chatyplayer-btn chatyplayer-subtitles", L.type = "button", L.setAttribute("aria-label", "Subtitles"), L.textContent = "CC";
   const T = document.createElement("div");
   T.className = "chatyplayer-subtitle-menu", T.style.display = "none";
   const M = () => {
     T.innerHTML = "";
-    const x = r.textTracks, F = document.createElement("button");
+    const S = r.textTracks, F = document.createElement("button");
     F.textContent = "Off", F.addEventListener("click", () => {
-      for (let A = 0; A < x.length; A++) {
-        const V = x[A];
-        V && (V.mode = "disabled");
+      for (let A = 0; A < S.length; A++) {
+        const R = S[A];
+        R && (R.mode = "disabled");
       }
       T.style.display = "none";
     }), T.appendChild(F);
-    for (let A = 0; A < x.length; A++) {
-      const V = x[A];
-      if (!V) continue;
+    for (let A = 0; A < S.length; A++) {
+      const R = S[A];
+      if (!R) continue;
       const _ = document.createElement("button");
-      _.textContent = V.label || V.language || `Track ${A + 1}`, _.addEventListener("click", () => {
-        for (let P = 0; P < x.length; P++) {
-          const k = x[P];
+      _.textContent = R.label || R.language || `Track ${A + 1}`, _.addEventListener("click", () => {
+        for (let P = 0; P < S.length; P++) {
+          const k = S[P];
           k && (k.mode = "disabled");
         }
-        V.mode = "showing", T.style.display = "none";
+        R.mode = "showing", T.style.display = "none";
       }), T.appendChild(_);
     }
   }, I = () => {
     T.style.display === "block" ? T.style.display = "none" : (M(), T.style.display = "block");
   };
   L.addEventListener("click", I), ae(n, y, i, e);
-  const S = document.createElement("button");
-  S.className = "chatyplayer-btn chatyplayer-fullscreen", S.type = "button", S.setAttribute("aria-label", "Fullscreen"), S.appendChild(U.fullscreen());
+  const x = document.createElement("button");
+  x.className = "chatyplayer-btn chatyplayer-fullscreen", x.type = "button", x.setAttribute("aria-label", "Fullscreen"), x.appendChild(U.fullscreen());
   const N = () => {
-    var x, F;
+    var S, F;
     document.fullscreenElement ? (F = document.exitFullscreen) == null || F.call(document).catch(() => {
-    }) : (x = o.requestFullscreen) == null || x.call(o).catch(() => {
+    }) : (S = o.requestFullscreen) == null || S.call(o).catch(() => {
     });
   }, O = () => {
   };
-  S.addEventListener("click", N), document.addEventListener("fullscreenchange", O), a.appendChild(c), a.appendChild(h), y.appendChild(L), y.appendChild(T), y.appendChild(d), y.appendChild(S), s.appendChild(a), s.appendChild(y), t.appendChild(s);
+  x.addEventListener("click", N), document.addEventListener("fullscreenchange", O), a.appendChild(c), a.appendChild(h), y.appendChild(L), y.appendChild(T), y.appendChild(d), y.appendChild(x), s.appendChild(a), s.appendChild(y), t.appendChild(s);
 }
 function le(n, t, i) {
   n.getVideo();
@@ -411,9 +411,9 @@ function le(n, t, i) {
     var h;
     if (!r.length) return null;
     let u = null;
-    for (const v of r)
-      if (l >= v.time)
-        u = v;
+    for (const g of r)
+      if (l >= g.time)
+        u = g;
       else
         break;
     return (h = u == null ? void 0 : u.title) != null ? h : null;
@@ -426,14 +426,14 @@ function le(n, t, i) {
     if (!Number.isFinite(l)) return;
     const h = a(l);
     if (o) {
-      const f = c(l);
-      s.textContent = f ? `${h}  ${f}` : h;
+      const m = c(l);
+      s.textContent = m ? `${h}  ${m}` : h;
     } else
       s.textContent = h;
-    const v = t.getBoundingClientRect(), m = s.offsetWidth || 40, d = y(
-      (u != null ? u : 0) - m / 2,
+    const g = t.getBoundingClientRect(), f = s.offsetWidth || 40, d = y(
+      (u != null ? u : 0) - f / 2,
       0,
-      v.width - m
+      g.width - f
     );
     s.style.left = `${d}px`, s.style.bottom = "100%", s.style.display = "block";
   };
@@ -453,10 +453,10 @@ function ue(n, t) {
     return console.warn("[ChatyPlayer] Invalid thumbnail configuration."), null;
   const p = document.createElement("div");
   p.className = "chatyplayer-thumbnail", p.style.backgroundImage = `url("${r}")`, p.style.backgroundRepeat = "no-repeat", p.style.width = `${o}px`, p.style.height = `${s}px`, p.style.display = "none", t.appendChild(p);
-  const l = a * y, u = (v, m) => {
-    if (!Number.isFinite(v)) return;
-    const d = Math.floor(v / c), f = Math.min(d, l - 1), E = f % a, b = Math.floor(f / a), g = -(E * o), w = -(b * s);
-    p.style.backgroundPosition = `${g}px ${w}px`, p.style.left = `${m}px`, p.style.display = "block";
+  const l = a * y, u = (g, f) => {
+    if (!Number.isFinite(g)) return;
+    const d = Math.floor(g / c), m = Math.min(d, l - 1), v = m % a, E = Math.floor(m / a), b = -(v * o), w = -(E * s);
+    p.style.backgroundPosition = `${b}px ${w}px`, p.style.left = `${f}px`, p.style.display = "block";
   }, h = () => {
     p.style.display = "none";
   };
@@ -480,7 +480,7 @@ function de(n, t, i, e) {
     if (!Number.isFinite(L) || L <= 0) return;
     const M = r.currentTime / L * 100;
     y.style.width = `${M}%`, u || (c.value = String(M));
-  }, v = () => {
+  }, g = () => {
     const L = r.duration;
     if (!(!Number.isFinite(L) || L <= 0 || r.buffered.length === 0))
       try {
@@ -488,7 +488,7 @@ function de(n, t, i, e) {
         a.style.width = `${M}%`;
       } catch {
       }
-  }, m = () => {
+  }, f = () => {
     const L = r.duration;
     if (!Number.isFinite(L) || L <= 0) return;
     const T = parseFloat(c.value);
@@ -498,32 +498,32 @@ function de(n, t, i, e) {
     });
   }, d = () => {
     u = !0;
-  }, f = () => {
+  }, m = () => {
     u = !1;
-  }, E = (L) => {
+  }, v = (L) => {
     const T = s.getBoundingClientRect();
     if (!T.width) return;
     const M = L.clientX - T.left, I = Math.min(
       Math.max(M / T.width, 0),
       1
-    ), S = r.duration || 0;
-    if (S <= 0) return;
-    const N = I * S;
+    ), x = r.duration || 0;
+    if (x <= 0) return;
+    const N = I * x;
     p(N, M), l && l(N, M);
-  }, b = () => {
+  }, E = () => {
     p(null);
   };
-  s.addEventListener("mousemove", E), s.addEventListener("mouseleave", b), c.addEventListener("input", m), c.addEventListener("mousedown", d), c.addEventListener("touchstart", d), c.addEventListener("mouseup", f), c.addEventListener("touchend", f), c.addEventListener("click", (L) => {
+  s.addEventListener("mousemove", v), s.addEventListener("mouseleave", E), c.addEventListener("input", f), c.addEventListener("mousedown", d), c.addEventListener("touchstart", d), c.addEventListener("mouseup", m), c.addEventListener("touchend", m), c.addEventListener("click", (L) => {
     L.stopPropagation();
   });
-  const g = () => {
-    h(), v();
+  const b = () => {
+    h(), g();
   }, w = () => {
     h();
   }, C = () => {
-    v();
+    g();
   };
-  r.addEventListener("loadedmetadata", g), r.addEventListener("timeupdate", w), r.addEventListener("progress", C);
+  r.addEventListener("loadedmetadata", b), r.addEventListener("timeupdate", w), r.addEventListener("progress", C);
 }
 function he(n, t, i) {
   var w;
@@ -555,10 +555,10 @@ function he(n, t, i) {
       threshold: 0.3
     }
   ).observe(s);
-  let p = !1, l = !1, u = 0, h = 0, v = null;
-  const m = 5, d = (C) => {
+  let p = !1, l = !1, u = 0, h = 0, g = null;
+  const f = 5, d = (C) => {
     if (!r) return;
-    v = C.pointerId;
+    g = C.pointerId;
     const L = e.getBoundingClientRect();
     u = C.clientX - L.left, h = C.clientY - L.top, e.style.right = "auto", e.style.bottom = "auto";
     try {
@@ -566,27 +566,27 @@ function he(n, t, i) {
     } catch {
     }
     p = !0, l = !1, e.style.cursor = "grabbing";
-  }, f = (C) => {
-    if (!p || C.pointerId !== v) return;
-    const L = C.clientX - u, T = C.clientY - h, M = window.innerWidth - e.offsetWidth, I = window.innerHeight - e.offsetHeight, S = Math.max(0, Math.min(L, M)), N = Math.max(0, Math.min(T, I));
+  }, m = (C) => {
+    if (!p || C.pointerId !== g) return;
+    const L = C.clientX - u, T = C.clientY - h, M = window.innerWidth - e.offsetWidth, I = window.innerHeight - e.offsetHeight, x = Math.max(0, Math.min(L, M)), N = Math.max(0, Math.min(T, I));
     if (!l) {
-      const O = Math.abs(C.movementX), x = Math.abs(C.movementY);
-      (O > m || x > m) && (l = !0);
+      const O = Math.abs(C.movementX), S = Math.abs(C.movementY);
+      (O > f || S > f) && (l = !0);
     }
-    e.style.left = `${S}px`, e.style.top = `${N}px`;
-  }, E = (C) => {
-    if (!(!p || C.pointerId !== v)) {
-      p = !1, v = null;
+    e.style.left = `${x}px`, e.style.top = `${N}px`;
+  }, v = (C) => {
+    if (!(!p || C.pointerId !== g)) {
+      p = !1, g = null;
       try {
         e.releasePointerCapture(C.pointerId);
       } catch {
       }
-      e.style.cursor = "grab", b();
+      e.style.cursor = "grab", E();
     }
+  }, E = () => {
+    const C = e.getBoundingClientRect(), L = window.innerWidth, T = window.innerHeight, M = C.left + C.width / 2, I = C.top + C.height / 2, x = M < L / 2, N = I < T / 2;
+    e.style.left = "", e.style.right = "", e.style.top = "", e.style.bottom = "", x && N ? (e.style.left = "20px", e.style.top = "20px") : !x && N ? (e.style.right = "20px", e.style.top = "20px") : x && !N ? (e.style.left = "20px", e.style.bottom = "20px") : (e.style.right = "20px", e.style.bottom = "20px");
   }, b = () => {
-    const C = e.getBoundingClientRect(), L = window.innerWidth, T = window.innerHeight, M = C.left + C.width / 2, I = C.top + C.height / 2, S = M < L / 2, N = I < T / 2;
-    e.style.left = "", e.style.right = "", e.style.top = "", e.style.bottom = "", S && N ? (e.style.left = "20px", e.style.top = "20px") : !S && N ? (e.style.right = "20px", e.style.top = "20px") : S && !N ? (e.style.left = "20px", e.style.bottom = "20px") : (e.style.right = "20px", e.style.bottom = "20px");
-  }, g = () => {
     !r || l || (y(), setTimeout(() => {
       e.scrollIntoView({
         behavior: "smooth",
@@ -594,7 +594,7 @@ function he(n, t, i) {
       });
     }, 50));
   };
-  e.addEventListener("pointerdown", d), window.addEventListener("pointermove", f), window.addEventListener("pointerup", E), e.addEventListener("click", g);
+  e.addEventListener("pointerdown", d), window.addEventListener("pointermove", m), window.addEventListener("pointerup", v), e.addEventListener("click", b);
 }
 const me = ["http:", "https:", "blob:", ""];
 function pe(n) {
@@ -625,15 +625,15 @@ function ye(n) {
   const e = t.canPlayType(i);
   return e === "probably" || e === "maybe";
 }
-function ve(n) {
+function ge(n) {
   const t = [];
   return ["mp4", "webm", "ogg"].forEach((i) => {
     const e = n[i];
     e && pe(e) && ye(i) && t.push(i);
   }), t;
 }
-function ge(n) {
-  const t = ve(n);
+function ve(n) {
+  const t = ge(n);
   if (t.length === 0) return null;
   const i = ["mp4", "webm", "ogg"];
   for (const e of i)
@@ -689,8 +689,8 @@ function Ee(n, t, i) {
     const u = l.tagName.toLowerCase();
     return u === "input" || u === "textarea" || l.isContentEditable ? !1 : l === e || o;
   }, p = (l) => {
-    var u, h, v;
-    if (c() && !(l.repeat && (l.key === " " || l.key === "m" || l.key === "f" || l.key === "t")))
+    var u, h;
+    if (console.log("KEY PRESSED:", l.key), !(!c() && l.key.toLowerCase() !== "t") && !(l.repeat && (l.key === " " || l.key === "m" || l.key === "f" || l.key === "t")))
       switch (l.key.toLowerCase()) {
         case " ":
         case "k":
@@ -707,13 +707,13 @@ function Ee(n, t, i) {
           break;
         case "arrowup":
           l.preventDefault();
-          const m = Math.min(1, r.volume + ee);
-          n.setVolume(m), r.muted = !1, i == null || i.set("volume", m), i == null || i.set("muted", !1);
+          const g = Math.min(1, r.volume + ee);
+          n.setVolume(g), r.muted = !1, i == null || i.set("volume", g), i == null || i.set("muted", !1);
           break;
         case "arrowdown":
           l.preventDefault();
-          const d = Math.max(0, r.volume - ee);
-          n.setVolume(d), r.muted = !1, i == null || i.set("volume", d);
+          const f = Math.max(0, r.volume - ee);
+          n.setVolume(f), r.muted = !1, i == null || i.set("volume", f);
           break;
         case "m":
           l.preventDefault(), r.muted = !r.muted, i == null || i.set("muted", r.muted);
@@ -722,11 +722,15 @@ function Ee(n, t, i) {
           l.preventDefault(), document.fullscreenElement ? (h = document.exitFullscreen) == null || h.call(document) : (u = e.requestFullscreen) == null || u.call(e);
           break;
         case "t":
-          l.preventDefault(), (v = n.toggleTheater) == null || v.call(n);
+          console.log("T CASE HIT"), l.preventDefault();
+          const d = n.toggleTheater;
+          console.log("toggle:", d), typeof d == "function" && (console.log("RUNNING TOGGLE"), d());
           break;
       }
   };
-  document.addEventListener("keydown", p), t == null || t.registerCleanup(() => {
+  setTimeout(() => {
+    document.addEventListener("keydown", p);
+  }, 0), t == null || t.registerCleanup(() => {
     e.removeEventListener("mouseenter", s), e.removeEventListener("mouseleave", a), e.removeEventListener("click", y), document.removeEventListener("keydown", p);
   });
 }
@@ -735,21 +739,21 @@ function Ce(n, t, i) {
   const e = n.getVideo();
   let r = null;
   const o = () => {
-    const v = e.currentSrc || e.src || "unknown";
-    return `chatyplayer_resume_${btoa(v).slice(0, 50)}`;
+    const g = e.currentSrc || e.src || "unknown";
+    return `chatyplayer_resume_${btoa(g).slice(0, 50)}`;
   }, s = () => {
     if (!(!e.duration || e.duration < te))
       try {
-        const v = o();
-        localStorage.setItem(v, String(e.currentTime));
+        const g = o();
+        localStorage.setItem(g, String(e.currentTime));
       } catch {
       }
   }, a = () => {
     if (!(!e.duration || e.duration < te))
       try {
-        const v = o(), m = localStorage.getItem(v);
-        if (!m) return;
-        const d = parseFloat(m);
+        const g = o(), f = localStorage.getItem(g);
+        if (!f) return;
+        const d = parseFloat(f);
         if (!isFinite(d)) return;
         d < e.duration - Le && (e.currentTime = d, i == null || i.set("currentTime", d));
       } catch {
@@ -763,8 +767,8 @@ function Ce(n, t, i) {
   }, p = () => y(), l = () => s(), u = () => {
     c();
     try {
-      const v = o();
-      localStorage.removeItem(v);
+      const g = o();
+      localStorage.removeItem(g);
     } catch {
     }
   }, h = () => a();
@@ -778,16 +782,16 @@ function Te(n, t, i, e) {
   const r = n.getContainer(), o = r.querySelector(
     ".chatyplayer-video-wrapper"
   ), s = "chatyplayer-theater-active", a = {}, y = () => {
-    [r, o].filter(Boolean).forEach((m) => {
-      ["position", "inset", "width", "height", "maxWidth", "margin", "aspectRatio", "zIndex"].forEach((d) => {
-        a[`${m.className}-${d}`] = m.style[d] || "";
+    [r, o].filter(Boolean).forEach((f, d) => {
+      ["position", "inset", "width", "height", "maxWidth", "margin", "aspectRatio", "zIndex"].forEach((m) => {
+        a[`${m}-${d}`] = f.style[m] || "";
       });
     });
   }, c = () => {
-    [r, o].filter(Boolean).forEach((m) => {
-      ["position", "inset", "width", "height", "maxWidth", "margin", "aspectRatio", "zIndex"].forEach((d) => {
-        const f = `${m.className}-${d}`;
-        m.style[d] = a[f] || "";
+    [r, o].filter(Boolean).forEach((f, d) => {
+      ["position", "inset", "width", "height", "maxWidth", "margin", "aspectRatio", "zIndex"].forEach((m) => {
+        const v = `${m}-${d}`;
+        f.style[m] = a[v] || "";
       });
     });
   }, p = () => r.classList.contains(s), l = () => {
@@ -807,14 +811,14 @@ function Te(n, t, i, e) {
   };
 }
 const ne = 300, Q = 10, Pe = 300, ke = 10;
-function xe(n, t, i) {
+function Se(n, t, i) {
   const e = n.getContainer(), r = n.getVideo();
   let o = 0, s = null, a = 0, y = 0, c = !1;
   const p = (d) => {
-    var E, b;
-    const f = (b = (E = d.composedPath) == null ? void 0 : E.call(d)) != null ? b : [];
-    for (const g of f)
-      if (g instanceof HTMLElement && (g.classList.contains("chatyplayer-controls-layer") || g.classList.contains("chatyplayer-timeline-layer") || g.classList.contains("chatyplayer-settings-panel") || g.classList.contains("chatyplayer-subtitle-menu") || g.tagName === "BUTTON" || g.tagName === "INPUT" || g.tagName === "SELECT" || g.tagName === "TEXTAREA"))
+    var v, E;
+    const m = (E = (v = d.composedPath) == null ? void 0 : v.call(d)) != null ? E : [];
+    for (const b of m)
+      if (b instanceof HTMLElement && (b.classList.contains("chatyplayer-controls-layer") || b.classList.contains("chatyplayer-timeline-layer") || b.classList.contains("chatyplayer-settings-panel") || b.classList.contains("chatyplayer-subtitle-menu") || b.tagName === "BUTTON" || b.tagName === "INPUT" || b.tagName === "SELECT" || b.tagName === "TEXTAREA"))
         return !0;
     return !1;
   }, l = () => {
@@ -822,9 +826,9 @@ function xe(n, t, i) {
     }) : n.pause();
   }, u = (d) => {
     if (p(d)) return;
-    const f = e.getBoundingClientRect(), E = d.clientX < f.left + f.width / 2;
+    const m = e.getBoundingClientRect(), v = d.clientX < m.left + m.width / 2;
     if (s !== null) {
-      window.clearTimeout(s), s = null, E ? n.seek(Math.max(0, r.currentTime - Q)) : n.seek(r.currentTime + Q);
+      window.clearTimeout(s), s = null, v ? n.seek(Math.max(0, r.currentTime - Q)) : n.seek(r.currentTime + Q);
       return;
     }
     s = window.setTimeout(() => {
@@ -832,31 +836,31 @@ function xe(n, t, i) {
     }, ne);
   }, h = (d) => {
     if (p(d) || d.touches.length !== 1) return;
-    const f = d.touches[0];
-    f && (a = f.clientY, y = r.volume, c = !1);
-  }, v = (d) => {
+    const m = d.touches[0];
+    m && (a = m.clientY, y = r.volume, c = !1);
+  }, g = (d) => {
     if (d.touches.length !== 1) return;
-    const f = d.touches[0];
-    if (!f) return;
-    const E = a - f.clientY;
-    if (Math.abs(E) > ke && (c = !0), !c) return;
-    const b = E / Pe, g = Math.min(
+    const m = d.touches[0];
+    if (!m) return;
+    const v = a - m.clientY;
+    if (Math.abs(v) > ke && (c = !0), !c) return;
+    const E = v / Pe, b = Math.min(
       1,
-      Math.max(0, y + b)
+      Math.max(0, y + E)
     );
-    r.volume = g, i == null || i.set("volume", g);
-  }, m = (d) => {
+    r.volume = b, i == null || i.set("volume", b);
+  }, f = (d) => {
     if (p(d) || c) return;
-    const f = Date.now(), E = f - o, b = d.changedTouches[0];
-    if (!b) return;
-    const g = e.getBoundingClientRect(), w = b.clientX < g.left + g.width / 2;
-    E < ne ? w ? n.seek(Math.max(0, r.currentTime - Q)) : n.seek(r.currentTime + Q) : l(), o = f;
+    const m = Date.now(), v = m - o, E = d.changedTouches[0];
+    if (!E) return;
+    const b = e.getBoundingClientRect(), w = E.clientX < b.left + b.width / 2;
+    v < ne ? w ? n.seek(Math.max(0, r.currentTime - Q)) : n.seek(r.currentTime + Q) : l(), o = m;
   };
-  e.style.userSelect = "none", e.addEventListener("click", u), e.addEventListener("touchstart", h, { passive: !0 }), e.addEventListener("touchmove", v, { passive: !0 }), e.addEventListener("touchend", m), t == null || t.registerCleanup(() => {
-    s !== null && (window.clearTimeout(s), s = null), e.removeEventListener("click", u), e.removeEventListener("touchstart", h), e.removeEventListener("touchmove", v), e.removeEventListener("touchend", m);
+  e.style.userSelect = "none", e.addEventListener("click", u), e.addEventListener("touchstart", h, { passive: !0 }), e.addEventListener("touchmove", g, { passive: !0 }), e.addEventListener("touchend", f), t == null || t.registerCleanup(() => {
+    s !== null && (window.clearTimeout(s), s = null), e.removeEventListener("click", u), e.removeEventListener("touchstart", h), e.removeEventListener("touchmove", g), e.removeEventListener("touchend", f);
   });
 }
-function Se(n) {
+function xe(n) {
   if (!n) return null;
   if (/^\d+$/.test(n)) {
     const a = parseInt(n, 10);
@@ -871,7 +875,7 @@ function Me(n, t) {
   const i = n.getVideo(), e = () => {
     if (typeof window == "undefined") return null;
     const s = new URL(window.location.href), a = s.searchParams.get("t"), y = s.hash.match(/t=([^&]+)/), c = a || (y ? y[1] : null);
-    return c ? Se(c) : null;
+    return c ? xe(c) : null;
   }, r = () => {
     const s = e();
     if (s === null || !i.duration) return;
@@ -910,16 +914,16 @@ function Fe(n, t, i, e) {
       }
   }, h = async () => {
     c() && (p() ? await u() : await l());
-  }, v = () => {
+  }, g = () => {
     i == null || i.set("pip", !0), e == null || e.emit("pipchange", !0);
-  }, m = () => {
+  }, f = () => {
     i == null || i.set("pip", !1), e == null || e.emit("pipchange", !1), s = !1;
   };
-  r.addEventListener("enterpictureinpicture", v), r.addEventListener("leavepictureinpicture", m);
+  r.addEventListener("enterpictureinpicture", g), r.addEventListener("leavepictureinpicture", f);
   const d = async () => {
     if (!c()) return;
-    const f = Date.now() - a < 15e3;
-    if (document.visibilityState === "hidden" && !r.paused && !p() && f)
+    const m = Date.now() - a < 15e3;
+    if (document.visibilityState === "hidden" && !r.paused && !p() && m)
       try {
         s = !0, await l();
       } catch {
@@ -934,7 +938,7 @@ function Fe(n, t, i, e) {
     }
   };
   return document.addEventListener("visibilitychange", d), t == null || t.registerCleanup(() => {
-    if (r.removeEventListener("enterpictureinpicture", v), r.removeEventListener("leavepictureinpicture", m), document.removeEventListener("visibilitychange", d), document.removeEventListener("pointerdown", y), document.removeEventListener("keydown", y), p())
+    if (r.removeEventListener("enterpictureinpicture", g), r.removeEventListener("leavepictureinpicture", f), document.removeEventListener("visibilitychange", d), document.removeEventListener("pointerdown", y), document.removeEventListener("keydown", y), p())
       try {
         o.exitPictureInPicture();
       } catch {
@@ -970,71 +974,71 @@ function Ae(n, t, i, e) {
     resetSpeed: a
   };
 }
-function Ve(n, t, i, e, r) {
-  var f, E;
+function Re(n, t, i, e, r) {
+  var m, v;
   const o = n.getVideo(), s = Array.isArray(t.sources) ? t.sources : [];
-  let a = (E = (f = s[0]) == null ? void 0 : f.label) != null ? E : "auto", y = !0, c = !1;
-  const p = () => s.length ? ["auto", ...s.map((b) => b.label)] : [], l = () => a, u = (b) => {
-    if (!b || c || o.src.includes(b.src)) return;
+  let a = (v = (m = s[0]) == null ? void 0 : m.label) != null ? v : "auto", y = !0, c = !1;
+  const p = () => s.length ? ["auto", ...s.map((E) => E.label)] : [], l = () => a, u = (E) => {
+    if (!E || c || o.src.includes(E.src)) return;
     c = !0;
-    const g = Number.isFinite(o.currentTime) ? o.currentTime : 0, w = !o.paused;
-    o.pause(), o.src = b.src, o.load();
+    const b = Number.isFinite(o.currentTime) ? o.currentTime : 0, w = !o.paused;
+    o.pause(), o.src = E.src, o.load();
     const C = () => {
       var L;
       try {
-        o.currentTime = g;
+        o.currentTime = b;
       } catch {
       }
       w && o.play().catch(() => {
       }), (L = e == null ? void 0 : e.update) == null || L.call(e, {
         playing: w
-      }), r == null || r.emit("qualitychange", b.label), o.removeEventListener("loadedmetadata", C), setTimeout(() => {
+      }), r == null || r.emit("qualitychange", E.label), o.removeEventListener("loadedmetadata", C), setTimeout(() => {
         c = !1;
       }, 2e3);
     };
     o.addEventListener("loadedmetadata", C);
-  }, h = (b) => {
-    if (b === "auto") {
+  }, h = (E) => {
+    if (E === "auto") {
       y = !0, a = "auto";
       return;
     }
-    const g = s.find((w) => w.label === b);
-    g && (y = !1, a = b, u(g));
-  }, v = () => {
+    const b = s.find((w) => w.label === E);
+    b && (y = !1, a = E, u(b));
+  }, g = () => {
     if (!y || c || s.length < 2 || !o.buffered.length) return;
-    const b = o.buffered.end(o.buffered.length - 1) - o.currentTime;
-    b > 15 && m(), b < 3 && d();
-  }, m = () => {
-    const b = s.findIndex((w) => w.label === a);
-    if (b < 0) return;
-    const g = s[b + 1];
-    g && (a = g.label, u(g));
+    const E = o.buffered.end(o.buffered.length - 1) - o.currentTime;
+    E > 15 && f(), E < 3 && d();
+  }, f = () => {
+    const E = s.findIndex((w) => w.label === a);
+    if (E < 0) return;
+    const b = s[E + 1];
+    b && (a = b.label, u(b));
   }, d = () => {
-    const b = s.findIndex((w) => w.label === a);
-    if (b <= 0) return;
-    const g = s[b - 1];
-    g && (a = g.label, u(g));
+    const E = s.findIndex((w) => w.label === a);
+    if (E <= 0) return;
+    const b = s[E - 1];
+    b && (a = b.label, u(b));
   };
-  return o.addEventListener("timeupdate", v), i == null || i.registerCleanup(() => {
-    o.removeEventListener("timeupdate", v);
+  return o.addEventListener("timeupdate", g), i == null || i.registerCleanup(() => {
+    o.removeEventListener("timeupdate", g);
   }), {
     getAvailableQualities: p,
     getCurrentQuality: l,
     setQuality: h
   };
 }
-function Re(n, t, i, e, r) {
+function Ve(n, t, i, e, r) {
   const o = n.getVideo(), s = [], a = Array.isArray(t) ? t.filter((u) => u && typeof u.time == "number" && Number.isFinite(u.time) && u.time >= 0 && typeof u.title == "string").sort((u, h) => u.time - h.time) : [], y = () => {
     const u = o.duration;
     if (!(!Number.isFinite(u) || u <= 0) && a.length)
       for (let h = 0; h < a.length; h++) {
-        const v = a[h], m = a[h + 1], d = v.time, f = m ? m.time : u;
+        const g = a[h], f = a[h + 1], d = g.time, m = f ? f.time : u;
         if (d >= u) continue;
-        const E = 0.35;
-        let b = d / u * 100, g = (f - d) / u * 100;
-        h > 0 && (b += E / 2), h < a.length - 1 && (g -= E);
+        const v = 0.35;
+        let E = d / u * 100, b = (m - d) / u * 100;
+        h > 0 && (E += v / 2), h < a.length - 1 && (b -= v);
         const w = document.createElement("div");
-        w.className = "chatyplayer-chapter-segment", w.style.left = `${b}%`, w.style.width = `${g}%`, w.setAttribute("role", "button"), w.setAttribute("tabindex", "0"), w.setAttribute("aria-label", v.title);
+        w.className = "chatyplayer-chapter-segment", w.style.left = `${E}%`, w.style.width = `${b}%`, w.setAttribute("role", "button"), w.setAttribute("tabindex", "0"), w.setAttribute("aria-label", g.title);
         const C = () => {
           var T;
           n.seek(d), (T = r == null ? void 0 : r.set) == null || T.call(r, "currentTime", d);
@@ -1049,16 +1053,16 @@ function Re(n, t, i, e, r) {
     const u = o.currentTime;
     if (!Number.isFinite(u) || !a.length) return;
     let h = 0;
-    for (let v = 0; v < a.length; v++) {
-      const m = a[v];
-      if (u >= m.time)
-        h = v;
+    for (let g = 0; g < a.length; g++) {
+      const f = a[g];
+      if (u >= f.time)
+        h = g;
       else
         break;
     }
-    for (let v = 0; v < s.length; v++) {
-      const m = s[v];
-      m && (v === h ? m.classList.add("chatyplayer-chapter-active") : m.classList.remove("chatyplayer-chapter-active"));
+    for (let g = 0; g < s.length; g++) {
+      const f = s[g];
+      f && (g === h ? f.classList.add("chatyplayer-chapter-active") : f.classList.remove("chatyplayer-chapter-active"));
     }
   }, p = () => {
     y(), c();
@@ -1084,49 +1088,49 @@ function $e(n) {
 }
 function Be(n, t, i, e, r) {
   const o = n.getVideo(), s = n.getContainer(), a = [], y = () => {
-    Array.isArray(t) && t.forEach((m) => {
-      const d = $e(m.src);
+    Array.isArray(t) && t.forEach((f) => {
+      const d = $e(f.src);
       if (!d) return;
-      const f = document.createElement("track");
-      f.kind = "subtitles", f.label = m.label, f.srclang = m.srclang, f.src = d, m.default && (f.default = !0), o.appendChild(f), a.push(f);
+      const m = document.createElement("track");
+      m.kind = "subtitles", m.label = f.label, m.srclang = f.srclang, m.src = d, f.default && (m.default = !0), o.appendChild(m), a.push(m);
     });
-  }, c = (m) => {
+  }, c = (f) => {
     const d = o.textTracks;
-    for (let f = 0; f < d.length; f++) {
-      const E = d[f];
-      E && (E.mode = E.language === m ? "showing" : "disabled");
+    for (let m = 0; m < d.length; m++) {
+      const v = d[m];
+      v && (v.mode = v.language === f ? "showing" : "disabled");
     }
-    r == null || r.emit("subtitlechange", m);
+    r == null || r.emit("subtitlechange", f);
   }, p = () => {
-    const m = o.textTracks;
-    for (let d = 0; d < m.length; d++) {
-      const f = m[d];
-      f && (f.mode = "disabled");
+    const f = o.textTracks;
+    for (let d = 0; d < f.length; d++) {
+      const m = f[d];
+      m && (m.mode = "disabled");
     }
     r == null || r.emit("subtitlechange", null);
-  }, l = () => t.map((m) => m.srclang).filter(Boolean), u = () => {
-    const m = s.querySelector(".chatyplayer-controls-layer");
-    if (!m) return -1;
-    const d = m.offsetHeight || 50;
+  }, l = () => t.map((f) => f.srclang).filter(Boolean), u = () => {
+    const f = s.querySelector(".chatyplayer-controls-layer");
+    if (!f) return -1;
+    const d = f.offsetHeight || 50;
     return -(Math.ceil(d / 24) + 1);
   }, h = () => {
-    const m = !s.classList.contains("hide-ui"), d = o.textTracks, f = m ? u() : -1;
-    for (let E = 0; E < d.length; E++) {
-      const b = d[E];
-      if (!b || b.mode !== "showing") continue;
-      const g = b.cues;
-      if (g)
-        for (let w = 0; w < g.length; w++) {
-          const C = g[w];
-          C && (C.snapToLines = !0, C.line = f);
+    const f = !s.classList.contains("hide-ui"), d = o.textTracks, m = f ? u() : -1;
+    for (let v = 0; v < d.length; v++) {
+      const E = d[v];
+      if (!E || E.mode !== "showing") continue;
+      const b = E.cues;
+      if (b)
+        for (let w = 0; w < b.length; w++) {
+          const C = b[w];
+          C && (C.snapToLines = !0, C.line = m);
         }
     }
   };
   y();
-  const v = t.find((m) => m.default);
-  return v && c(v.srclang), s.addEventListener("mousemove", h), s.addEventListener("mouseleave", h), o.addEventListener("play", h), o.addEventListener("pause", h), o.addEventListener("timeupdate", h), o.addEventListener("loadedmetadata", h), i == null || i.registerCleanup(() => {
-    s.removeEventListener("mousemove", h), s.removeEventListener("mouseleave", h), o.removeEventListener("play", h), o.removeEventListener("pause", h), o.removeEventListener("timeupdate", h), o.removeEventListener("loadedmetadata", h), a.forEach((m) => {
-      m.parentNode === o && o.removeChild(m);
+  const g = t.find((f) => f.default);
+  return g && c(g.srclang), s.addEventListener("mousemove", h), s.addEventListener("mouseleave", h), o.addEventListener("play", h), o.addEventListener("pause", h), o.addEventListener("timeupdate", h), o.addEventListener("loadedmetadata", h), i == null || i.registerCleanup(() => {
+    s.removeEventListener("mousemove", h), s.removeEventListener("mouseleave", h), o.removeEventListener("play", h), o.removeEventListener("pause", h), o.removeEventListener("timeupdate", h), o.removeEventListener("loadedmetadata", h), a.forEach((f) => {
+      f.parentNode === o && o.removeChild(f);
     });
   }), {
     enableSubtitle: c,
@@ -1175,7 +1179,7 @@ const De = [
   /* ----------------------------------------
   Interaction
   ---------------------------------------- */
-  $("gestures", xe),
+  $("gestures", Se),
   /* ----------------------------------------
   Utility features
   ---------------------------------------- */
@@ -1191,7 +1195,7 @@ const De = [
       if (!Array.isArray(r) || r.length === 0) return;
       const o = n.getContainer().querySelector(".chatyplayer-timeline-layer");
       if (!o) return;
-      Re(
+      Ve(
         n,
         r,
         o,
@@ -1240,7 +1244,7 @@ const De = [
     try {
       const t = n.config, i = n.lifecycle, e = n.state, r = n.events;
       if (!t) return;
-      const o = Ve(
+      const o = Re(
         n,
         t,
         i,
@@ -1280,7 +1284,7 @@ class ze {
   Resolve Initial Source
   ========================================= */
   resolveInitialSource() {
-    const t = ge(this.config);
+    const t = ve(this.config);
     if (t) return t;
     if (Array.isArray(this.config.sources) && this.config.sources.length)
       return this.config.sources[0];

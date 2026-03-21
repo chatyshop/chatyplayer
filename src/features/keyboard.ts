@@ -70,7 +70,9 @@ export function initKeyboardFeature(
 
   const onKeyDown = (e: KeyboardEvent) => {
 
-    if (!shouldHandle()) return
+    if (!shouldHandle()) {
+  if (e.key.toLowerCase() !== 't') return
+    }
 
     /* Prevent repeat spam for toggle keys */
     if (
@@ -149,9 +151,13 @@ export function initKeyboardFeature(
       case 't':
         e.preventDefault()
 
-        ;(player as any).toggleTheater?.()
+         const toggle = (player as any).toggleTheater
 
-        break
+          if (typeof toggle === 'function') {
+          toggle()
+          }
+
+         break
 
       default:
         break
