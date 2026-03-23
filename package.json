@@ -1,6 +1,6 @@
 {
   "name": "chatyplayer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Lightweight, modular, secure HTML5 video player with modern features.",
   "type": "module",
 
