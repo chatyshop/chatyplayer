@@ -33,23 +33,33 @@
 
   const container = document.getElementById('player');
 
-const player = new Player(container, {
-  sources: [
-    { src: "/video-480.mp4", label: "480p" },
-    { src: "/video-720.mp4", label: "720p" },
-  ],
-  subtitles: [
-    { src: "/subtitles-en.vtt", label: "English", srclang: "en", default: true },
-    { src: "/subtitles-ta.vtt", label: "Tamil", srclang: "ta" },
-    { src: "/subtitles-hi.vtt", label: "Hindi", srclang: "hi" },
-    { src: "/subtitles-es.vtt", label: "Spanish", srclang: "es" },
-    { src: "/subtitles-ar.vtt", label: "Arabic", srclang: "ar" },
-    { src: "/subtitles-fr.vtt", label: "French", srclang: "fr" }
-  ]
-})
+  const player = new Player(container, {
+    sources: [
+      { src: "/video-480.mp4", label: "480p" },
+      { src: "/video-720.mp4", label: "720p" },
+    ],
 
-window.player = player // 🔥 ADD THIS
-  
+    subtitles: [
+      { src: "/subtitles-en.vtt", label: "English", srclang: "en", default: true },
+      { src: "/subtitles-ta.vtt", label: "Tamil", srclang: "ta" },
+      { src: "/subtitles-hi.vtt", label: "Hindi", srclang: "hi" },
+      { src: "/subtitles-es.vtt", label: "Spanish", srclang: "es" },
+      { src: "/subtitles-ar.vtt", label: "Arabic", srclang: "ar" },
+      { src: "/subtitles-fr.vtt", label: "French", srclang: "fr" }
+    ],
+
+    // 🔥 ADD THIS
+    thumbnails: {
+      src: "/sprite.jpg",   // or test images later
+      width: 160,
+      height: 90,
+      columns: 10,
+      rows: 10,
+      interval: 1
+    }
+  });
+
+  window.player = player;
 </script>
 
 </body>

@@ -28,14 +28,14 @@ export default defineConfig({
 
       // ✅ Type-safe + production-safe naming
       fileName: (format) => {
-        const map = {
-          es: 'chatyplayer.es.js',
-          cjs: 'chatyplayer.cjs.js',
-          umd: 'chatyplayer.umd.js'
-        } as const
+  const map = {
+    es: 'chatyplayer.es.min.js',
+    cjs: 'chatyplayer.cjs.min.js',
+    umd: 'chatyplayer.umd.min.js'
+  } as const
 
-        return map[format as keyof typeof map]
-      }
+  return map[format as keyof typeof map]
+}
     },
 
     rollupOptions: {

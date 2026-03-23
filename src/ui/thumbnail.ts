@@ -18,8 +18,7 @@ export function createThumbnail(
 ): ThumbnailUpdater | null {
 
   const config = player.getConfig();
-
-  if (!config.thumbnails) return null;
+  if (!config?.thumbnails) return null;
 
   const thumbs: ThumbnailConfig = config.thumbnails;
 
@@ -32,26 +31,51 @@ export function createThumbnail(
     interval
   } = thumbs;
 
-  if (!src || !width || !height || !columns || !rows || !interval) {
+  /* ----------------------------------
+     Validation (safe guard)
+  ---------------------------------- */
+
+  if (
+    !src ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    !Number.isFinite(columns) ||
+    !Number.isFinite(rows) ||
+    !Number.isFinite(interval) ||
+    width <= 0 ||
+    height <= 0 ||
+    columns <= 0 ||
+    rows <= 0 ||
+    interval <= 0
+  ) {
     console.warn('[ChatyPlayer] Invalid thumbnail configuration.');
     return null;
   }
 
-  /* ---------------------------
-     Safe URL + preload
-  --------------------------- */
+  /* ----------------------------------
+     Safe URL
+  ---------------------------------- */
 
-  const safeSrc = encodeURI(src);
+  let safeSrc: string;
+  try {
+    safeSrc = encodeURI(src);
+  } catch {
+    console.warn('[ChatyPlayer] Invalid thumbnail src');
+    return null;
+  }
+
+  /* ----------------------------------
+     Preload (non-blocking)
+  ---------------------------------- */
 
   const preload = new Image();
   preload.src = safeSrc;
 
-  /* ---------------------------
+  /* ----------------------------------
      Thumbnail Element
-  --------------------------- */
+  ---------------------------------- */
 
   const thumb = document.createElement('div');
-
   thumb.className = 'chatyplayer-thumbnail';
 
   thumb.style.position = 'absolute';
@@ -62,49 +86,88 @@ export function createThumbnail(
   thumb.style.height = `${height}px`;
   thumb.style.display = 'none';
   thumb.style.willChange = 'transform';
+  thumb.style.zIndex = '100';
 
+  /* ----------------------------------
+     Time Label
+  ---------------------------------- */
+
+  const label = document.createElement('div');
+  label.className = 'chatyplayer-thumb-time';
+
+  thumb.appendChild(label);
   container.appendChild(thumb);
 
   const maxFrames = columns * rows;
 
-  /* ---------------------------
-     Update Logic
-  --------------------------- */
+  /* ----------------------------------
+     Time Formatter
+  ---------------------------------- */
+
+  const formatTime = (t: number): string => {
+    if (!Number.isFinite(t)) return '0:00';
+
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60);
+
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  /* ----------------------------------
+     RAF Optimization
+  ---------------------------------- */
+
+  let rafId: number | null = null;
 
   const update: ThumbnailUpdater = (time, position) => {
 
     if (!Number.isFinite(time)) return;
 
-    const frameIndex = Math.floor(time / interval);
-    const safeIndex = Math.min(frameIndex, maxFrames - 1);
+    if (rafId !== null) cancelAnimationFrame(rafId);
 
-    const col = safeIndex % columns;
-    const row = Math.floor(safeIndex / columns);
+    rafId = requestAnimationFrame(() => {
 
-    const x = -(col * width);
-    const y = -(row * height);
+      /* ---------- Frame Calculation ---------- */
 
-    thumb.style.backgroundPosition = `${x}px ${y}px`;
+      const frameIndex = Math.floor(time / interval);
+      const safeIndex = Math.min(frameIndex, maxFrames - 1);
 
-    /* ---------- Clamp position ---------- */
+      const col = safeIndex % columns;
+      const row = Math.floor(safeIndex / columns);
 
-    const containerWidth = container.offsetWidth;
+      const x = -(col * width);
+      const y = -(row * height);
 
-    const safeLeft = Math.max(
-      0,
-      Math.min(position - width / 2, containerWidth - width)
-    );
+      thumb.style.backgroundPosition = `${x}px ${y}px`;
 
-    /* ---------- GPU transform ---------- */
+      /* ---------- Position Clamp ---------- */
 
-    thumb.style.transform = `translateX(${safeLeft}px)`;
+      const containerWidth = container.getBoundingClientRect().width;
 
-    thumb.style.display = 'block';
+      const safeLeft = Math.max(
+        width / 2,
+        Math.min(position, containerWidth - width / 2)
+      ) - width / 2;
+
+      /* ---------- Position (Above Timeline) ---------- */
+
+      thumb.style.transform = `translate(${safeLeft}px, -${height + 12}px)`;
+
+      /* ---------- Label ---------- */
+
+      label.textContent = formatTime(time);
+
+      /* ---------- Show ---------- */
+
+      if (thumb.style.display !== 'block') {
+        thumb.style.display = 'block';
+      }
+    });
   };
 
-  /* ---------------------------
-     Hide Logic (Desktop + Mobile)
-  --------------------------- */
+  /* ----------------------------------
+     Hide Logic
+  ---------------------------------- */
 
   const hide = () => {
     thumb.style.display = 'none';
@@ -114,9 +177,11 @@ export function createThumbnail(
   container.addEventListener('touchend', hide);
   container.addEventListener('touchcancel', hide);
 
-  /* ---------------------------
-     Return updater
-  --------------------------- */
+  /* ----------------------------------
+     Cleanup Safety (optional future)
+  ---------------------------------- */
+
+  // (You can later attach lifecycle cleanup here if needed)
 
   return update;
 }

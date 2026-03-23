@@ -4,6 +4,55 @@ All notable changes to ChatyPlayer will be documented in this file.
 
 The format is based on Keep a Changelog and follows Semantic Versioning.
 
+## [1.0.4] – Subtitles & Thumbnail System Upgrade
+
+Release date: 23 Mar 2026
+
+This release introduces a fully custom subtitle engine and timeline thumbnail preview system, improving user experience and player interactivity.
+
+### ✨ Added
+
+* Custom subtitle rendering engine (WebVTT parser)
+* Dynamic subtitle positioning based on controls visibility
+* Subtitle language selector (custom UI menu)
+* Timeline thumbnail preview (sprite-based)
+* Hover preview with time indicator
+* Support for multiple subtitle tracks with labels
+
+### 🛠 Fixed
+
+* Fixed subtitle position not updating when controls auto-hide
+* Fixed subtitle overlap with settings and controls UI
+* Fixed subtitle menu interaction issues
+* Fixed thumbnail positioning and alignment issues
+* Fixed UI update sync when menus open/close
+
+### 🎨 Improvements
+
+* Improved subtitle readability and styling
+* Better subtitle scaling in mini player mode
+* Smooth thumbnail animation using GPU transforms
+* Enhanced timeline interaction feedback
+* Cleaner UI layering (z-index fixes)
+
+### 🔒 Security
+
+* Safe subtitle URL sanitization (prevents unsafe protocols)
+* XSS-safe subtitle text rendering
+
+### 👨‍💻 Developer Experience
+
+* Extended Player API:
+
+  * `enableSubtitle(lang)`
+  * `disableSubtitles()`
+  * `getAvailableSubtitles()`
+  * `getCurrentSubtitle()`
+* Cleaner modular structure for subtitles and thumbnails
+* Improved event-driven UI updates (`chatyplayer-ui-update`)
+
+---
+
 
 
 [1.0.3] – CSS & Rendering Fixes
