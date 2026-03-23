@@ -237,12 +237,31 @@ export function initSubtitlesFeature(
   /* ========================================= */
 
   const updatePosition = () => {
-    const controls =
-      container.querySelector('.chatyplayer-controls-layer') as HTMLElement | null
+  const controls =
+    container.querySelector('.chatyplayer-controls-layer') as HTMLElement | null
 
-    const height = controls?.offsetHeight || 50
-    subtitleLayer.style.bottom = `${height + 10}px`
+  const settingsPanel =
+    container.querySelector('.chatyplayer-settings-panel') as HTMLElement | null
+
+  const subtitleMenu =
+    container.querySelector('.chatyplayer-subtitle-menu') as HTMLElement | null
+
+  const isHidden = container.classList.contains('hide-ui')
+
+  let offset = isHidden ? 10 : (controls?.offsetHeight || 50) + 10
+
+  // ✅ SETTINGS PANEL (correct class + visibility check)
+  if (settingsPanel && settingsPanel.classList.contains('is-open')) {
+    offset += settingsPanel.offsetHeight
   }
+
+  // ✅ SUBTITLE MENU (your existing one)
+  if (subtitleMenu && subtitleMenu.offsetParent !== null) {
+    offset += subtitleMenu.offsetHeight
+  }
+
+  subtitleLayer.style.bottom = `${offset}px`
+}
 
   /* ========================================= */
 
@@ -286,14 +305,16 @@ export function initSubtitlesFeature(
   }
 
   /* ========================================= */
-
+  container.addEventListener('chatyplayer-ui-update', updatePosition)
   video.addEventListener('timeupdate', updateSubtitles)
   video.addEventListener('timeupdate', updatePosition)
 
   container.addEventListener('mousemove', updatePosition)
   container.addEventListener('mouseenter', updatePosition)
 
-  const observer = new MutationObserver(updatePosition)
+  const observer = new MutationObserver(() => {
+  requestAnimationFrame(updatePosition)
+})
 
   observer.observe(container, {
     attributes: true,
