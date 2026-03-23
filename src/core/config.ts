@@ -47,6 +47,14 @@ export interface Chapter {
   title: string
 }
 
+
+export interface SubtitleTrack {
+  src: string
+  label: string
+  srclang: string
+  default?: boolean
+}
+
 /* =========================================
    Player Configuration
 ========================================= */
@@ -59,6 +67,8 @@ export interface PlayerConfig {
   ogg?: string
 
   sources?: VideoSource[]
+
+  subtitles?: SubtitleTrack[]
 
   poster?: string
 

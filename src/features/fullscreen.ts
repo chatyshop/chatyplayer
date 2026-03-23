@@ -1,99 +1,120 @@
 /**
- * fullscreen.ts
  * ChatyPlayer v1.0
- * Fullscreen Feature
+ * Fullscreen Feature (Production Ready - Clean Mode Sync)
  * ----------------------------------------
- * - Safe Fullscreen API handling
- * - Cross-browser support
- * - State sync
- * - Event emission
- * - Lifecycle safe cleanup
+ * - Fully compatible with Player mode system
+ * - No forced mode overrides
+ * - Prevents infinite loops
+ * - Safe cross-browser support
+ * - Works with existing Player fullscreen logic
  */
 
-import type { Player } from '../core/Player';
-import type { LifecycleManager } from '../core/lifecycle';
-import type { StateManager } from '../core/state';
-import type { EventEmitter } from '../core/events';
+import type { Player } from '../core/Player'
+import type { LifecycleManager } from '../core/lifecycle'
+import type { StateManager } from '../core/state'
 
 export function initFullscreenFeature(
   player: Player,
   lifecycle?: LifecycleManager,
-  state?: StateManager,
-  events?: EventEmitter
+  state?: StateManager
 ) {
-  const container = player.getContainer();
+  const container = player.getContainer()
+  const doc: any = document
 
-  const doc: any = document;
+  let syncing = false
 
-  /**
-   * Request fullscreen safely
-   */
-  const requestFullscreen = (): Promise<void> | void => {
-    const el: any = container;
+  /* =========================================
+     Fullscreen helpers (safe)
+  ========================================= */
 
-    if (el.requestFullscreen) return el.requestFullscreen();
-    if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
-    if (el.msRequestFullscreen) return el.msRequestFullscreen();
-  };
+  const requestFullscreen = () => {
+    const el: any = container
+    if (el.requestFullscreen) return el.requestFullscreen()
+    if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen()
+    if (el.msRequestFullscreen) return el.msRequestFullscreen()
+  }
 
-  /**
-   * Exit fullscreen safely
-   */
-  const exitFullscreen = (): Promise<void> | void => {
-    if (doc.exitFullscreen) return doc.exitFullscreen();
-    if (doc.webkitExitFullscreen) return doc.webkitExitFullscreen();
-    if (doc.msExitFullscreen) return doc.msExitFullscreen();
-  };
+  const exitFullscreen = () => {
+    if (doc.exitFullscreen) return doc.exitFullscreen()
+    if (doc.webkitExitFullscreen) return doc.webkitExitFullscreen()
+    if (doc.msExitFullscreen) return doc.msExitFullscreen()
+  }
 
-  /**
-   * Check fullscreen state
-   */
-  const isFullscreen = (): boolean => {
+  const isFullscreen = () => {
     return (
       document.fullscreenElement === container ||
       doc.webkitFullscreenElement === container ||
       doc.msFullscreenElement === container
-    );
-  };
+    )
+  }
 
-  /**
-   * Toggle fullscreen
-   */
-  const toggleFullscreen = async (): Promise<void> => {
-    try {
-      if (!isFullscreen()) {
-        await requestFullscreen();
-      } else {
-        await exitFullscreen();
-      }
-    } catch {
-      // Fail silently (user gesture policy, etc.)
+  /* =========================================
+     MODE → FULLSCREEN (sync only)
+  ========================================= */
+
+  player.getEvents().on('modechange', ({ prev, next }) => {
+    if (syncing) return
+
+    // Only react to actual change
+    if (prev === next) return
+
+    if (next === 'fullscreen') {
+      if (!isFullscreen()) requestFullscreen()
+    } else {
+      if (isFullscreen()) exitFullscreen()
     }
-  };
+  })
 
-  /**
-   * Sync state on fullscreen change
-   */
-  const onFullscreenChange = (): void => {
-    const active = isFullscreen();
+  /* =========================================
+     FULLSCREEN → MODE (no override)
+  ========================================= */
 
-    state?.set('fullscreen', active);
-    events?.emit('fullscreenchange' as any, active);
-  };
+  const onFullscreenChange = () => {
+    if (syncing) return
+    syncing = true
 
-  // Register listeners
-  document.addEventListener('fullscreenchange', onFullscreenChange);
-  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
-  document.addEventListener('msfullscreenchange', onFullscreenChange);
+    try {
+      const active = isFullscreen()
+      state?.set('fullscreen', active)
+
+      // Only sync when entering fullscreen externally
+      if (active && player.getMode() !== 'fullscreen') {
+        player.setMode('fullscreen')
+      }
+
+      // ❗ Do NOT force exit mode
+      // Let user or UI decide (normal/theatre/mini)
+
+    } finally {
+      syncing = false
+    }
+  }
+
+  document.addEventListener('fullscreenchange', onFullscreenChange)
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange)
+  document.addEventListener('msfullscreenchange', onFullscreenChange)
+
+  /* =========================================
+     Public API
+  ========================================= */
+
+  player.toggleFullscreen = () => {
+    player.setMode(
+      player.getMode() === 'fullscreen' ? 'normal' : 'fullscreen'
+    )
+  }
+
+  /* =========================================
+     Cleanup
+  ========================================= */
 
   lifecycle?.registerCleanup(() => {
-    document.removeEventListener('fullscreenchange', onFullscreenChange);
-    document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
-    document.removeEventListener('msfullscreenchange', onFullscreenChange);
-  });
+    document.removeEventListener('fullscreenchange', onFullscreenChange)
+    document.removeEventListener('webkitfullscreenchange', onFullscreenChange)
+    document.removeEventListener('msfullscreenchange', onFullscreenChange)
+  })
 
   return {
-    toggleFullscreen,
     isFullscreen
-  };
+  }
 }

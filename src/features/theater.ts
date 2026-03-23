@@ -1,116 +1,136 @@
 /**
  * ChatyPlayer v1.0
- * Theater Mode Feature (Viewport Fill Version)
- * theater.ts
+ * Theater Mode Feature (Production Ready - Mode Safe)
  * ----------------------------------------
- * - Fills entire browser viewport
- * - No Fullscreen API
- * - No scroll
- * - Safe cleanup
- * - State synced
+ * - Safe style backup (WeakMap)
+ * - Idempotent enable/disable
+ * - No layout leaks
+ * - Mode system compatible
+ * - Works with fullscreen transitions
  */
 
-import type { Player } from '../core/Player';
-import type { LifecycleManager } from '../core/lifecycle';
-import type { StateManager } from '../core/state';
-import type { EventEmitter } from '../core/events';
+import type { Player } from '../core/Player'
+import type { LifecycleManager } from '../core/lifecycle'
+import type { StateManager } from '../core/state'
 
 export function initTheaterFeature(
   player: Player,
   lifecycle?: LifecycleManager,
-  state?: StateManager,
-  events?: EventEmitter
+  state?: StateManager
 ) {
-  const container = player.getContainer();
+  const container = player.getContainer()
   const wrapper = container.querySelector(
     '.chatyplayer-video-wrapper'
-  ) as HTMLElement | null;
+  ) as HTMLElement | null
 
-  const ROOT_CLASS = 'chatyplayer-theater-active';
+  const ROOT_CLASS = 'chatyplayer-theater-active'
 
-  const originalStyles: Record<string, string> = {};
+  // ✅ Safe style storage
+  const styleBackup = new WeakMap<HTMLElement, Partial<CSSStyleDeclaration>>()
 
-  const saveStyles = () => {
-    const elements = [container, wrapper].filter(Boolean) as HTMLElement[];
+  let active = false
 
-    elements.forEach((el) => {
-      ['position', 'inset', 'width', 'height', 'maxWidth', 'margin', 'aspectRatio', 'zIndex']
-        .forEach((prop) => {
-          originalStyles[`${el.className}-${prop}`] = (el.style as any)[prop] || '';
-        });
-    });
-  };
+  /* ========================================= */
 
-  const restoreStyles = () => {
-    const elements = [container, wrapper].filter(Boolean) as HTMLElement[];
+  const saveStyles = (el: HTMLElement) => {
+    if (styleBackup.has(el)) return
 
-    elements.forEach((el) => {
-      ['position', 'inset', 'width', 'height', 'maxWidth', 'margin', 'aspectRatio', 'zIndex']
-        .forEach((prop) => {
-          const key = `${el.className}-${prop}`;
-          (el.style as any)[prop] = originalStyles[key] || '';
-        });
-    });
-  };
+    styleBackup.set(el, {
+      position: el.style.position,
+      inset: (el.style as any).inset,
+      width: el.style.width,
+      height: el.style.height,
+      maxWidth: el.style.maxWidth,
+      margin: el.style.margin,
+      aspectRatio: (el.style as any).aspectRatio,
+      zIndex: el.style.zIndex
+    })
+  }
 
-  const isTheater = () =>
-    container.classList.contains(ROOT_CLASS);
+  const restoreStyles = (el: HTMLElement) => {
+    const styles = styleBackup.get(el)
+    if (!styles) return
 
-  const enableTheater = () => {
-    if (isTheater()) return;
+    Object.assign(el.style, styles)
+    styleBackup.delete(el)
+  }
 
-    saveStyles();
+  /* ========================================= */
 
-    container.classList.add(ROOT_CLASS);
+  const enableTheatre = () => {
+    if (active) return
+    active = true
 
-    // Fill viewport
-    container.style.position = 'fixed';
-    container.style.inset = '0';
-    container.style.width = '100vw';
-    container.style.height = '100vh';
-    container.style.margin = '0';
-    container.style.maxWidth = 'none';
-    container.style.zIndex = '9999';
+    saveStyles(container)
+    if (wrapper) saveStyles(wrapper)
+
+    container.classList.add(ROOT_CLASS)
+
+    container.style.position = 'fixed'
+    container.style.inset = '0'
+    container.style.width = '100vw'
+    container.style.height = '100vh'
+    container.style.margin = '0'
+    container.style.maxWidth = 'none'
+    container.style.zIndex = '9999'
 
     if (wrapper) {
-      wrapper.style.aspectRatio = 'auto';
-      wrapper.style.width = '100%';
-      wrapper.style.height = '100%';
+      wrapper.style.aspectRatio = 'auto'
+      wrapper.style.width = '100%'
+      wrapper.style.height = '100%'
     }
 
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden'
 
-    state?.set('theater', true);
-    events?.emit('theaterchange' as any, true);
-  };
+    state?.set('theater', true)
+  }
 
-  const disableTheater = () => {
-    if (!isTheater()) return;
+  const disableTheatre = () => {
+    if (!active) return
+    active = false
 
-    container.classList.remove(ROOT_CLASS);
+    container.classList.remove(ROOT_CLASS)
 
-    restoreStyles();
+    restoreStyles(container)
+    if (wrapper) restoreStyles(wrapper)
 
-    document.body.style.overflow = '';
+    document.body.style.overflow = ''
 
-    state?.set('theater', false);
-    events?.emit('theaterchange' as any, false);
-  };
+    state?.set('theater', false)
+  }
 
-  const toggleTheater = () => {
-    isTheater() ? disableTheater() : enableTheater();
-  };
+  /* =========================================
+     MODE SYSTEM SYNC
+  ========================================= */
 
-  (player as any).toggleTheater = toggleTheater;
+  player.getEvents().on('modechange', ({ next }) => {
+    if (next === 'theatre') {
+      enableTheatre()
+    } else {
+      disableTheatre()
+    }
+  })
+
+  /* =========================================
+     PUBLIC API
+  ========================================= */
+
+  player.toggleTheatre = () => {
+    player.setMode(
+      player.getMode() === 'theatre'
+        ? 'normal'
+        : 'theatre'
+    )
+  }
+
+  /* ========================================= */
 
   lifecycle?.registerCleanup(() => {
-    disableTheater();
-  });
+    disableTheatre()
+  })
 
   return {
-    enableTheater,
-    disableTheater,
-    toggleTheater,
-    isTheater
-  };
+    enableTheatre,
+    disableTheatre
+  }
 }

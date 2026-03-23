@@ -1,6 +1,6 @@
 /**
  * ChatyPlayer v1.0
- * Mini Player (Production Ready - Final Stable)
+ * Mini Player (Production Ready - Controlled UX + Mode Safe)
  */
 
 import type { Player } from '../core/Player'
@@ -21,6 +21,7 @@ export function createMiniPlayer(
 
   let isMini = false
   let scrollLock = false
+  let lastMode: any = 'normal'
 
   /* ---------------------------
      Sentinel
@@ -28,8 +29,39 @@ export function createMiniPlayer(
 
   const sentinel = document.createElement('div')
   sentinel.style.height = '1px'
-
   container.parentElement?.insertBefore(sentinel, container)
+
+  /* ---------------------------
+     Back Button
+  --------------------------- */
+
+  const backBtn = document.createElement('button')
+  backBtn.className = 'chatyplayer-mini-back'
+  backBtn.innerText = 'Back'
+
+  Object.assign(backBtn.style, {
+    position: 'absolute',
+    top: '8px',
+    left: '8px',
+    zIndex: '10000',
+    background: 'rgba(0,0,0,0.6)',
+    color: '#fff',
+    border: 'none',
+    padding: '4px 8px',
+    cursor: 'pointer',
+    borderRadius: '4px'
+  })
+
+  backBtn.addEventListener('click', (e) => {
+    e.stopPropagation()
+
+    deactivateMini()
+
+    container.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    })
+  })
 
   /* ---------------------------
      Activate / Deactivate
@@ -38,9 +70,16 @@ export function createMiniPlayer(
   const activateMini = () => {
     if (isMini) return
 
-    container.classList.add('chatyplayer-mini')
+    lastMode = player.getMode()
+    player.setMode('mini')
+
     container.style.cursor = 'grab'
     container.style.touchAction = 'none'
+    container.style.zIndex = '9999'
+
+    container.appendChild(backBtn)
+
+    snapToCorner()
 
     isMini = true
     state?.set?.('mini', true)
@@ -49,17 +88,31 @@ export function createMiniPlayer(
   const deactivateMini = () => {
     if (!isMini) return
 
-    container.classList.remove('chatyplayer-mini')
+    player.setMode(lastMode || 'normal')
 
     container.style.left = ''
     container.style.top = ''
     container.style.right = ''
     container.style.bottom = ''
     container.style.cursor = ''
+    container.style.touchAction = ''
+    container.style.zIndex = ''
+
+    backBtn.remove()
 
     isMini = false
     state?.set?.('mini', false)
   }
+
+  /* ---------------------------
+     Mode Sync
+  --------------------------- */
+
+  player.getEvents().on('modechange', ({ next }) => {
+    if (next !== 'mini' && isMini) {
+      deactivateMini()
+    }
+  })
 
   /* ---------------------------
      Intersection Observer
@@ -74,14 +127,12 @@ export function createMiniPlayer(
         if (!entry.isIntersecting && !isMini) {
           scrollLock = true
           activateMini()
-
           setTimeout(() => (scrollLock = false), 150)
         }
 
         if (entry.isIntersecting && isMini) {
           scrollLock = true
           deactivateMini()
-
           setTimeout(() => (scrollLock = false), 150)
         }
       }
@@ -96,18 +147,13 @@ export function createMiniPlayer(
   observer.observe(sentinel)
 
   /* ---------------------------
-     Drag Logic (Improved)
+     Drag Logic
   --------------------------- */
 
   let dragging = false
-  let moved = false
   let offsetX = 0
   let offsetY = 0
-  let startX = 0
-  let startY = 0
   let activePointerId: number | null = null
-
-  const DRAG_THRESHOLD = 5
 
   const onPointerDown = (e: PointerEvent) => {
     if (!isMini) return
@@ -119,9 +165,6 @@ export function createMiniPlayer(
     offsetX = e.clientX - rect.left
     offsetY = e.clientY - rect.top
 
-    startX = e.clientX
-    startY = e.clientY
-
     container.style.right = 'auto'
     container.style.bottom = 'auto'
 
@@ -130,8 +173,6 @@ export function createMiniPlayer(
     } catch {}
 
     dragging = true
-    moved = false
-
     container.style.cursor = 'grabbing'
   }
 
@@ -144,20 +185,8 @@ export function createMiniPlayer(
     const maxX = window.innerWidth - container.offsetWidth
     const maxY = window.innerHeight - container.offsetHeight
 
-    const safeX = Math.max(0, Math.min(x, maxX))
-    const safeY = Math.max(0, Math.min(y, maxY))
-
-    if (!moved) {
-      const dx = Math.abs(e.clientX - startX)
-      const dy = Math.abs(e.clientY - startY)
-
-      if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
-        moved = true
-      }
-    }
-
-    container.style.left = `${safeX}px`
-    container.style.top = `${safeY}px`
+    container.style.left = `${Math.max(0, Math.min(x, maxX))}px`
+    container.style.top = `${Math.max(0, Math.min(y, maxY))}px`
   }
 
   const onPointerUp = (e: PointerEvent) => {
@@ -171,25 +200,18 @@ export function createMiniPlayer(
     } catch {}
 
     container.style.cursor = 'grab'
-
     snapToCorner()
   }
 
   /* ---------------------------
-     Snap to Corner
+     Snap
   --------------------------- */
 
   const snapToCorner = () => {
     const rect = container.getBoundingClientRect()
 
-    const screenWidth = window.innerWidth
-    const screenHeight = window.innerHeight
-
-    const centerX = rect.left + rect.width / 2
-    const centerY = rect.top + rect.height / 2
-
-    const isLeft = centerX < screenWidth / 2
-    const isTop = centerY < screenHeight / 2
+    const isLeft = rect.left + rect.width / 2 < window.innerWidth / 2
+    const isTop = rect.top + rect.height / 2 < window.innerHeight / 2
 
     container.style.left = ''
     container.style.right = ''
@@ -197,56 +219,43 @@ export function createMiniPlayer(
     container.style.bottom = ''
 
     if (isLeft && isTop) {
-      container.style.left = '20px'
-      container.style.top = '20px'
+      container.style.left = '16px'
+      container.style.top = '16px'
     } else if (!isLeft && isTop) {
-      container.style.right = '20px'
-      container.style.top = '20px'
+      container.style.right = '16px'
+      container.style.top = '16px'
     } else if (isLeft && !isTop) {
-      container.style.left = '20px'
-      container.style.bottom = '20px'
+      container.style.left = '16px'
+      container.style.bottom = '16px'
     } else {
-      container.style.right = '20px'
-      container.style.bottom = '20px'
+      container.style.right = '16px'
+      container.style.bottom = '16px'
     }
   }
 
   /* ---------------------------
-     Restore on Click (Safe)
+     Resize Safety
   --------------------------- */
 
-  const onClick = () => {
-    if (!isMini || moved) return
-
-    deactivateMini()
-
-    setTimeout(() => {
-      const rect = container.getBoundingClientRect()
-
-      window.scrollBy({
-        top: rect.top - window.innerHeight / 2,
-        behavior: 'smooth'
-      })
-    }, 50)
+  const onResize = () => {
+    if (isMini) snapToCorner()
   }
 
   /* ---------------------------
-     Event Binding
+     Bind
   --------------------------- */
 
   container.addEventListener('pointerdown', onPointerDown)
   window.addEventListener('pointermove', onPointerMove, { passive: true })
   window.addEventListener('pointerup', onPointerUp)
   window.addEventListener('pointercancel', onPointerUp)
-
-  container.addEventListener('click', onClick)
+  window.addEventListener('resize', onResize)
 
   /* ---------------------------
      Cleanup
   --------------------------- */
 
   lifecycle?.registerCleanup(() => {
-
     observer.disconnect()
     sentinel.remove()
 
@@ -254,8 +263,8 @@ export function createMiniPlayer(
     window.removeEventListener('pointermove', onPointerMove)
     window.removeEventListener('pointerup', onPointerUp)
     window.removeEventListener('pointercancel', onPointerUp)
+    window.removeEventListener('resize', onResize)
 
-    container.removeEventListener('click', onClick)
-
+    backBtn.remove()
   })
 }

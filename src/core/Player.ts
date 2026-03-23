@@ -1,15 +1,18 @@
 /**
  * ChatyPlayer v1.0
- * Core Player Engine (Production Ready - FINAL)
+ * Core Player Engine (Production Ready - Clean Mode System)
+ * Player.ts
  * ----------------------------------------
- * - Mobile optimized (pointer events)
- * - Memory leak safe
- * - Network-aware preload
- * - Secure source validation
- * - Adaptive UI behavior
+ * - Single source of truth for mode
+ * - No fullscreen API inside Player
+ * - Feature-driven architecture
+ * - Safe DOM handling
+ * - Lifecycle safe
  */
 
 import { PlayerConfig, VideoSource } from './config'
+import { StateManager } from './state'
+import { LifecycleManager } from './lifecycle'
 import { EventEmitter } from './events'
 import { createPublicAPI } from '../api/publicAPI'
 import { createControls } from '../ui/controls'
@@ -19,378 +22,329 @@ import { selectBestSource } from '../utils/formats'
 import type { PlayerFeature } from '../types/Feature'
 import { builtInFeatures } from '../features/featureRegistry'
 
+type PlayerMode = 'normal' | 'mini' | 'theatre' | 'fullscreen'
+
 export class Player {
 
-private container: HTMLElement
-private video: HTMLVideoElement
-private wrapper!: HTMLElement
-private timelineLayer!: HTMLElement
+  private container: HTMLElement
+  private video: HTMLVideoElement
+  private wrapper!: HTMLElement
+  private timelineLayer!: HTMLElement
 
-private config: PlayerConfig
-private events: EventEmitter
+  private config: PlayerConfig
+  private events: EventEmitter
+  private state: StateManager
+  private lifecycle: LifecycleManager
 
-private destroyed = false
-private activeFeatures: PlayerFeature[] = []
-private hideTimeout?: number
+  private destroyed = false
+  private activeFeatures: PlayerFeature[] = []
+  private hideTimeout?: number
 
-// event handlers (for cleanup)
-private handleUIShow = () => {}
-private handlePause = () => {}
-private handlePlay = () => {}
+  // 🔥 Single source of truth
+  private mode: PlayerMode = 'normal'
 
-public readonly api
-
-constructor(container: HTMLElement, config: PlayerConfig) {
-
-if (typeof window === 'undefined') {
-  throw new Error('[ChatyPlayer] Cannot initialize on server.')
-}
-
-if (!(container instanceof HTMLElement)) {
-  throw new Error('[ChatyPlayer] Invalid container element.')
-}
-
-this.container = container
-this.config = config
-this.events = new EventEmitter()
-
-this.video = this.createVideoElement()
-
-this.mount()
-this.initCoreEvents()
-this.initAutoHide()
-this.initFeatures()
-this.initMiniPlayer()
-
-this.api = createPublicAPI(this, this.events)
-
-this.events.emit('ready')
-
-}
-
-/* =========================================
-Video Element Creation
-========================================= */
-
-private createVideoElement(): HTMLVideoElement {
-
-const video = document.createElement('video')
-
-// 🌐 Network-aware preload (mobile optimization)
-const connection = (navigator as any)?.connection
-if (connection?.saveData || connection?.effectiveType === '2g') {
-  video.preload = 'none'
-} else {
-  video.preload = this.config.preload ?? 'metadata'
-}
-
-video.playsInline = true
-video.controls = false
-video.crossOrigin = 'anonymous'
-
-if (this.config.poster) {
-  video.poster = this.config.poster
-}
-
-const source = this.resolveInitialSource()
-
-if (!source || typeof source.src !== 'string' || !source.src.trim()) {
-  throw new Error('[ChatyPlayer] No valid video source found.')
-}
-
-video.src = source.src
-
-if (this.config.autoplay) {
-  video.autoplay = true
-  video.muted = true
-}
-
-if (this.config.loop) {
-  video.loop = true
-}
-
-return video
-
-}
-
-/* =========================================
-Resolve Initial Source
-========================================= */
-
-private resolveInitialSource(): VideoSource | { src: string } | undefined {
-
-const direct = selectBestSource(this.config)
-
-if (direct) return direct
-
-if (Array.isArray(this.config.sources) && this.config.sources.length) {
-  return this.config.sources[0]
-}
-
-return undefined
-
-}
-
-/* =========================================
-Mount Player Structure
-========================================= */
-
-private mount(): void {
-
-this.container.textContent = ''
-this.container.classList.add('chatyplayer-root')
-
-const videoWrapper = document.createElement('div')
-videoWrapper.className = 'chatyplayer-video-wrapper'
-
-this.wrapper = videoWrapper
-
-videoWrapper.appendChild(this.video)
-
-/* timeline layer */
-
-this.timelineLayer = document.createElement('div')
-this.timelineLayer.className = 'chatyplayer-timeline-layer'
-
-/* controls layer */
-
-const controlsLayer = document.createElement('div')
-controlsLayer.className = 'chatyplayer-controls-layer'
-
-videoWrapper.appendChild(this.timelineLayer)
-videoWrapper.appendChild(controlsLayer)
-
-this.container.appendChild(videoWrapper)
-
-createTimeline(this, this.timelineLayer)
-createControls(this, controlsLayer)
-
-}
-
-/* =========================================
-Mini Player
-========================================= */
-
-private initMiniPlayer(): void {
-
-try {
-  createMiniPlayer(this)
-} catch (error) {
-  console.warn('[ChatyPlayer] MiniPlayer failed to initialize.', error)
-}
-
-}
-
-/* =========================================
-Auto Hide Controls (Mobile Optimized)
-========================================= */
-
-private initAutoHide(): void {
-
-const isMobile = window.matchMedia('(pointer: coarse)').matches
-const hideDelay = isMobile ? 3500 : 2000
-
-this.handleUIShow = () => {
-
-  if (this.destroyed) return
-
-  this.container.classList.remove('hide-ui')
-
-  if (this.hideTimeout) {
-    window.clearTimeout(this.hideTimeout)
+  public getMode(): PlayerMode {
+    return this.mode
   }
 
-  this.hideTimeout = window.setTimeout(() => {
-    if (!this.video.paused) {
-      this.container.classList.add('hide-ui')
+  private handleUIShow = () => {}
+  private handlePause = () => {}
+  private handlePlay = () => {}
+
+  public readonly api
+
+  constructor(container: HTMLElement, config: PlayerConfig) {
+
+    if (typeof window === 'undefined') {
+      throw new Error('[ChatyPlayer] Cannot initialize on server.')
     }
-  }, hideDelay)
 
-}
+    if (!(container instanceof HTMLElement)) {
+      throw new Error('[ChatyPlayer] Invalid container element.')
+    }
 
-this.handlePause = () => {
-  this.container.classList.remove('hide-ui')
-}
+    this.container = container
+    this.config = config
+    this.events = new EventEmitter()
 
-this.handlePlay = this.handleUIShow
+    this.video = this.createVideoElement()
+    this.api = createPublicAPI(this, this.events)
+    this.mount()
+    this.initCoreEvents()
+    this.initAutoHide()
+    this.initFeatures()
+    this.initMiniPlayer()
+    this.state = new StateManager()
+    this.lifecycle = new LifecycleManager()
 
-// ✅ Pointer events (unified mobile + desktop)
-this.wrapper.addEventListener('pointermove', this.handleUIShow, { passive: true })
-this.wrapper.addEventListener('pointerdown', this.handleUIShow, { passive: true })
+    
 
-this.video.addEventListener('pause', this.handlePause)
-this.video.addEventListener('play', this.handlePlay)
-
-}
-
-/* =========================================
-Core Events
-========================================= */
-
-private initCoreEvents(): void {
-
-const video = this.video
-
-video.addEventListener('play', () => {
-  this.events.emit('play')
-})
-
-video.addEventListener('pause', () => {
-  this.events.emit('pause')
-})
-
-video.addEventListener('ended', () => {
-  this.events.emit('ended')
-})
-
-video.addEventListener('timeupdate', () => {
-  this.events.emit('timeupdate', video.currentTime)
-})
-
-video.addEventListener('loadedmetadata', () => {
-  this.events.emit('loadedmetadata', video.duration)
-})
-
-video.addEventListener('error', () => {
-  this.events.emit('error', video.error)
-})
-
-}
-
-/* =========================================
-Feature System
-========================================= */
-
-private initFeatures(): void {
-
-if (this.destroyed) return
-
-const features = this.config.features ?? builtInFeatures
-
-for (const feature of features) {
-
-  try {
-    feature.init(this)
-    this.activeFeatures.push(feature)
-  } catch (error) {
-    console.error(`[ChatyPlayer] Feature "${feature.name}" failed.`, error)
+    this.events.emit('ready')
   }
 
-}
+  /* ========================================= */
 
-}
+  private createVideoElement(): HTMLVideoElement {
 
-/* =========================================
-Public Controls
-========================================= */
+    const video = document.createElement('video')
 
-public async play(): Promise<void> {
-try {
-  await this.video.play()
-} catch {
-  /* autoplay safe fail */
-}
-}
+    const connection = (navigator as any)?.connection
+    video.preload = (connection?.saveData || connection?.effectiveType === '2g')
+      ? 'none'
+      : this.config.preload ?? 'metadata'
 
-public pause(): void {
-this.video.pause()
-}
+    video.playsInline = true
+    video.controls = false
+    video.crossOrigin = 'anonymous'
 
-public toggle(): void {
-this.video.paused ? this.play() : this.pause()
-}
+    if (this.config.poster) video.poster = this.config.poster
 
-public seek(seconds: number): void {
+    const source = this.resolveInitialSource()
+    if (!source || typeof source.src !== 'string' || !source.src.trim()) {
+      throw new Error('[ChatyPlayer] No valid video source found.')
+    }
 
-if (!Number.isFinite(seconds)) return
+    video.src = source.src
 
-const duration = this.video.duration || 0
-const safe = Math.max(0, Math.min(seconds, duration))
+    if (this.config.autoplay) {
+      video.autoplay = true
+      video.muted = true
+    }
 
-this.video.currentTime = safe
+    if (this.config.loop) video.loop = true
 
-}
+    return video
+  }
 
-public setVolume(volume: number): void {
+  /* ========================================= */
 
-if (!Number.isFinite(volume)) return
+  private resolveInitialSource(): VideoSource | { src: string } | undefined {
+    const direct = selectBestSource(this.config)
+    if (direct) return direct
+    if (Array.isArray(this.config.sources) && this.config.sources.length) {
+      return this.config.sources[0]
+    }
+    return undefined
+  }
 
-this.video.volume = Math.max(0, Math.min(volume, 1))
+  /* ========================================= */
 
-}
+  private mount(): void {
 
-public setSpeed(rate: number): void {
+    this.container.textContent = ''
+    this.container.classList.add('chatyplayer-root')
 
-if (!Number.isFinite(rate) || rate <= 0) return
+    const wrapper = document.createElement('div')
+    wrapper.className = 'chatyplayer-video-wrapper'
 
-this.video.playbackRate = rate
+    this.wrapper = wrapper
+    wrapper.appendChild(this.video)
 
-}
+    this.timelineLayer = document.createElement('div')
+    this.timelineLayer.className = 'chatyplayer-timeline-layer'
 
-/* =========================================
-Getters
-========================================= */
+    const controlsLayer = document.createElement('div')
+    controlsLayer.className = 'chatyplayer-controls-layer'
 
-public getVideo(): HTMLVideoElement {
-return this.video
-}
+    wrapper.appendChild(this.timelineLayer)
+    wrapper.appendChild(controlsLayer)
 
-public getContainer(): HTMLElement {
-return this.container
-}
+    this.container.appendChild(wrapper)
 
-public getTimeline(): HTMLElement {
-return this.timelineLayer
-}
+    createTimeline(this, this.timelineLayer)
+    createControls(this, controlsLayer)
+  }
 
-public getConfig(): PlayerConfig {
-return this.config
-}
+  /* =========================================
+     MODE SYSTEM (FINAL CLEAN)
+  ========================================= */
 
-public getEvents(): EventEmitter {
-return this.events
-}
+  public setMode(next: PlayerMode): void {
 
-/* =========================================
-Destroy Lifecycle (Leak-Free)
-========================================= */
+    if (this.mode === next) return
 
-public destroy(): void {
+    const prev = this.mode
+    this.mode = next
 
-if (this.destroyed) return
+    this.container.classList.remove(
+      'chatyplayer-mini',
+      'chatyplayer-theater',
+      'chatyplayer-fullscreen'
+    )
 
-this.pause()
+    this.container.classList.remove('hide-ui')
 
-if (this.hideTimeout) {
-  window.clearTimeout(this.hideTimeout)
-}
+    switch (next) {
+      case 'mini':
+        this.container.classList.add('chatyplayer-mini')
+        break
 
-// ✅ remove UI listeners
-this.wrapper.removeEventListener('pointermove', this.handleUIShow)
-this.wrapper.removeEventListener('pointerdown', this.handleUIShow)
+      case 'theatre':
+        this.container.classList.add('chatyplayer-theater')
+        break
 
-this.video.removeEventListener('pause', this.handlePause)
-this.video.removeEventListener('play', this.handlePlay)
+      case 'fullscreen':
+        this.container.classList.add('chatyplayer-fullscreen')
+        break
 
-// features cleanup
-for (const feature of this.activeFeatures) {
-  try {
-    feature.destroy?.(this)
-  } catch {}
-}
+      case 'normal':
+      default:
+        break
+    }
 
-this.video.removeAttribute('src')
-this.video.load()
+    this.events.emit('modechange', { prev, next })
+  }
 
-this.events.emit('destroy')
-this.events.destroy()
+  /* ========================================= */
 
-this.container.textContent = ''
-this.container.classList.remove('chatyplayer-root')
+  public toggleMini() {
+    this.setMode(this.mode === 'mini' ? 'normal' : 'mini')
+  }
 
-this.activeFeatures = []
-this.destroyed = true
+  public toggleTheatre() {
+    this.setMode(this.mode === 'theatre' ? 'normal' : 'theatre')
+  }
 
-}
+  public toggleFullscreen() {
+    this.setMode(this.mode === 'fullscreen' ? 'normal' : 'fullscreen')
+  }
 
+  /* ========================================= */
+
+  private initMiniPlayer(): void {
+    try {
+      createMiniPlayer(this)
+    } catch (error) {
+      console.warn('[ChatyPlayer] MiniPlayer failed.', error)
+    }
+  }
+
+  /* ========================================= */
+
+  private initAutoHide(): void {
+
+    const isMobile = window.matchMedia('(pointer: coarse)').matches
+    const delay = isMobile ? 3500 : 2000
+
+    this.handleUIShow = () => {
+      if (this.destroyed) return
+
+      this.container.classList.remove('hide-ui')
+
+      if (this.hideTimeout) clearTimeout(this.hideTimeout)
+
+      this.hideTimeout = window.setTimeout(() => {
+        if (!this.video.paused) {
+          this.container.classList.add('hide-ui')
+        }
+      }, delay)
+    }
+
+    this.handlePause = () => {
+      this.container.classList.remove('hide-ui')
+    }
+
+    this.handlePlay = this.handleUIShow
+
+    this.wrapper.addEventListener('pointermove', this.handleUIShow, { passive: true })
+    this.wrapper.addEventListener('pointerdown', this.handleUIShow, { passive: true })
+
+    this.video.addEventListener('pause', this.handlePause)
+    this.video.addEventListener('play', this.handlePlay)
+  }
+
+  /* ========================================= */
+
+  private initCoreEvents(): void {
+
+    const v = this.video
+
+    v.addEventListener('play', () => this.events.emit('play'))
+    v.addEventListener('pause', () => this.events.emit('pause'))
+    v.addEventListener('ended', () => this.events.emit('ended'))
+    v.addEventListener('timeupdate', () => this.events.emit('timeupdate', v.currentTime))
+    v.addEventListener('loadedmetadata', () => this.events.emit('loadedmetadata', v.duration))
+    v.addEventListener('error', () => this.events.emit('error', v.error))
+  }
+
+  /* ========================================= */
+
+  private initFeatures(): void {
+
+    if (this.destroyed) return
+
+    const features = this.config.features ?? builtInFeatures
+
+    for (const f of features) {
+      try {
+        f.init(this)
+        this.activeFeatures.push(f)
+      } catch (e) {
+        console.error(`[ChatyPlayer] Feature "${f.name}" failed.`, e)
+      }
+    }
+  }
+
+  /* ========================================= */
+
+  public play() { return this.video.play().catch(() => {}) }
+  public pause() { this.video.pause() }
+  public toggle() { this.video.paused ? this.play() : this.pause() }
+
+  public seek(t: number) {
+    if (!Number.isFinite(t)) return
+    const d = this.video.duration || 0
+    this.video.currentTime = Math.max(0, Math.min(t, d))
+  }
+
+  public setVolume(v: number) {
+    if (!Number.isFinite(v)) return
+    this.video.volume = Math.max(0, Math.min(v, 1))
+  }
+
+  public setSpeed(r: number) {
+    if (!Number.isFinite(r) || r <= 0) return
+    this.video.playbackRate = r
+  }
+
+  /* ========================================= */
+
+  public getVideo() { return this.video }
+  public getContainer() { return this.container }
+  public getTimeline() { return this.timelineLayer }
+  public getConfig() { return this.config }
+  public getEvents() { return this.events }
+
+  /* ========================================= */
+
+  public destroy(): void {
+
+    if (this.destroyed) return
+
+    this.pause()
+
+    if (this.hideTimeout) clearTimeout(this.hideTimeout)
+
+    this.wrapper.removeEventListener('pointermove', this.handleUIShow)
+    this.wrapper.removeEventListener('pointerdown', this.handleUIShow)
+
+    this.video.removeEventListener('pause', this.handlePause)
+    this.video.removeEventListener('play', this.handlePlay)
+
+    for (const f of this.activeFeatures) {
+      try { f.destroy?.(this) } catch {}
+    }
+
+    this.video.removeAttribute('src')
+    this.video.load()
+
+    this.events.emit('destroy')
+    this.events.destroy()
+
+    this.container.textContent = ''
+    this.container.classList.remove('chatyplayer-root')
+
+    this.activeFeatures = []
+    this.destroyed = true
+  }
 }

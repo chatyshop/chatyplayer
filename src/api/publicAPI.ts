@@ -1,13 +1,7 @@
 /**
  * ChatyPlayer v1.0
- * Public API Wrapper (Production Ready)
- * ----------------------------------------
- * - Safe controlled interface
- * - Strong TypeScript typing
- * - Input validation
- * - No internal exposure
- * - Defensive feature checks
- * - Event subscription wrapper
+ * Public API Wrapper (Production Ready - Subtitles Integrated)
+ * publicAPI.ts
  */
 
 import type { Player } from '../core/Player'
@@ -24,7 +18,8 @@ export interface ChatyPlayerAPI {
   unmute(): void
 
   toggleFullscreen(): void
-  toggleTheater(): void
+  toggleTheatre(): void
+  toggleMini(): void
   togglePiP(): void
 
   setSpeed(rate: number): void
@@ -32,6 +27,8 @@ export interface ChatyPlayerAPI {
 
   enableSubtitle(lang: string): void
   disableSubtitles(): void
+  getAvailableSubtitles(): string[] // ✅ NEW
+  getCurrentSubtitle?: () => string | null
 
   captureScreenshot(): string | null
   downloadScreenshot(): void
@@ -60,32 +57,40 @@ export function createPublicAPI(
 
   const video = player.getVideo()
 
+  /* =========================================
+     Safe Helpers
+  ========================================= */
+
   const safeNumber = (value: unknown, fallback = 0): number => {
     const num = Number(value)
     return Number.isFinite(num) ? num : fallback
   }
 
-  const callFeature = (method: string, ...args: unknown[]) => {
+  const getFeatureMethod = (method: string) => {
     const instance = player as unknown as Record<string, unknown>
     const fn = instance[method]
+    return typeof fn === 'function' ? fn : null
+  }
 
-    if (typeof fn === 'function') {
-      try {
-        ;(fn as (...args: unknown[]) => unknown).apply(player, args)
-      } catch {
-        /* silent fail */
-      }
+  const callFeature = (method: string, ...args: unknown[]) => {
+    const fn = getFeatureMethod(method)
+    if (!fn) return
+
+    try {
+      fn.apply(player, args)
+    } catch {
+      /* silent fail */
     }
   }
+
+  /* ========================================= */
 
   return {
 
     async play() {
       try {
         await player.play()
-      } catch {
-        /* autoplay restriction safe fail */
-      }
+      } catch {}
     },
 
     pause() {
@@ -120,17 +125,27 @@ export function createPublicAPI(
       video.muted = false
     },
 
+    /* =========================================
+       MODE SYSTEM
+    ========================================= */
+
     toggleFullscreen() {
       callFeature('toggleFullscreen')
     },
 
-    toggleTheater() {
-      callFeature('toggleTheater')
+    toggleTheatre() {
+      callFeature('toggleTheatre')
+    },
+
+    toggleMini() {
+      callFeature('toggleMini')
     },
 
     togglePiP() {
       callFeature('togglePiP')
     },
+
+    /* ========================================= */
 
     setSpeed(rate: number) {
       const safeRate = Math.min(
@@ -146,8 +161,12 @@ export function createPublicAPI(
       callFeature('setQuality', label)
     },
 
+    /* =========================================
+       SUBTITLES (FIXED + SAFE)
+    ========================================= */
+
     enableSubtitle(lang: string) {
-      if (typeof lang !== 'string') return
+      if (typeof lang !== 'string' || !lang) return
       callFeature('enableSubtitle', lang)
     },
 
@@ -155,21 +174,32 @@ export function createPublicAPI(
       callFeature('disableSubtitles')
     },
 
-    captureScreenshot() {
-      const instance = player as unknown as Record<string, unknown>
+    getAvailableSubtitles(): string[] {
+      const fn = getFeatureMethod('getAvailableSubtitles')
 
-      const fn = instance['captureScreenshot']
+      if (!fn) return []
 
-      if (typeof fn === 'function') {
-        try {
-          const result = fn.call(player)
-          return typeof result === 'string' ? result : null
-        } catch {
-          return null
-        }
+      try {
+        const result = fn.call(player)
+        return Array.isArray(result) ? result.filter(Boolean) : []
+      } catch {
+        return []
       }
+    },
 
-      return null
+    /* ========================================= */
+
+    captureScreenshot() {
+      const fn = getFeatureMethod('captureScreenshot')
+
+      if (!fn) return null
+
+      try {
+        const result = fn.call(player)
+        return typeof result === 'string' ? result : null
+      } catch {
+        return null
+      }
     },
 
     downloadScreenshot() {
@@ -177,33 +207,30 @@ export function createPublicAPI(
     },
 
     getTimestampLink() {
-      const instance = player as unknown as Record<string, unknown>
-      const fn = instance['getTimestampLink']
+      const fn = getFeatureMethod('getTimestampLink')
 
-      if (typeof fn === 'function') {
-        try {
-          const result = fn.call(player)
-          return typeof result === 'string' ? result : null
-        } catch {
-          return null
-        }
+      if (!fn) return null
+
+      try {
+        const result = fn.call(player)
+        return typeof result === 'string' ? result : null
+      } catch {
+        return null
       }
-
-      return null
     },
 
-    on(event, handler) {
-      if (!events) return
-      if (typeof handler !== 'function') return
+    /* =========================================
+       EVENTS
+    ========================================= */
 
-      events.on(event, handler as any)
+    on(event, handler) {
+      if (!events || typeof handler !== 'function') return
+      events.on(event, handler as never)
     },
 
     off(event, handler) {
-      if (!events) return
-      if (typeof handler !== 'function') return
-
-      events.off(event, handler as any)
+      if (!events || typeof handler !== 'function') return
+      events.off(event, handler as never)
     }
 
   }

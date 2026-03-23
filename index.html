@@ -33,22 +33,21 @@
 
   const container = document.getElementById('player');
 
-  new Player(container, {
-
+const player = new Player(container, {
   sources: [
     { src: "/video-480.mp4", label: "480p" },
   ],
-
   subtitles: [
-    {
-      src: "/subtitles-en.vtt",
-      label: "English",
-      srclang: "en",
-      default: true
-    }
+    { src: "/subtitles-en.vtt", label: "English", srclang: "en", default: true },
+    { src: "/subtitles-ta.vtt", label: "Tamil", srclang: "ta" },
+    { src: "/subtitles-hi.vtt", label: "Hindi", srclang: "hi" },
+    { src: "/subtitles-es.vtt", label: "Spanish", srclang: "es" },
+    { src: "/subtitles-ar.vtt", label: "Arabic", srclang: "ar" },
+    { src: "/subtitles-fr.vtt", label: "French", srclang: "fr" }
   ]
-
 })
+
+window.player = player // 🔥 ADD THIS
   
 </script>
 

@@ -1,11 +1,13 @@
 /**
  * ChatyPlayer v1.0
  * Controls Module (Production Ready - Final Stable)
+ * controls.ts
  */
 
 import type { Player } from '../core/Player'
 import type { LifecycleManager } from '../core/lifecycle'
 import type { StateManager } from '../core/state'
+import type { EventEmitter } from '../core/events'
 import { createSettings } from './settings'
 import { Icons } from './icons'
 
@@ -13,7 +15,8 @@ export function createControls(
   player: Player,
   mountPoint: HTMLElement,
   lifecycle?: LifecycleManager,
-  state?: StateManager
+  state?: StateManager,
+  events?: EventEmitter
 ): void {
 
   const video = player.getVideo()
@@ -152,93 +155,165 @@ export function createControls(
 
   volumeWrapper.appendChild(muteBtn)
   volumeWrapper.appendChild(volumeSlider)
+/* =====================================================
+   SUBTITLES (Production Ready UI - Custom Renderer)
+===================================================== */
 
-  /* =====================================================
-  SUBTITLES
-  ===================================================== */
+const subtitleBtn = document.createElement('button')
+subtitleBtn.className = 'chatyplayer-btn chatyplayer-subtitles'
+subtitleBtn.type = 'button'
+subtitleBtn.textContent = 'CC'
+subtitleBtn.setAttribute('aria-label', 'Subtitles')
 
-  const subtitleBtn = document.createElement('button')
-  subtitleBtn.className = 'chatyplayer-btn chatyplayer-subtitles'
-  subtitleBtn.type = 'button'
-  subtitleBtn.textContent = 'CC'
+const subtitleMenu = document.createElement('div')
+subtitleMenu.className = 'chatyplayer-subtitle-menu'
+subtitleMenu.style.display = 'none'
 
-  const subtitleMenu = document.createElement('div')
-  subtitleMenu.className = 'chatyplayer-subtitle-menu'
+/* =========================================
+   Subtitles API (NEW SYSTEM)
+========================================= */
+
+const getAPI = () => player.api
+
+/* =========================================
+   Build Menu (SAFE + CUSTOM ENGINE)
+========================================= */
+
+const buildSubtitleMenu = (): void => {
+
+  subtitleMenu.innerHTML = ''
+
+  const list = document.createElement('ul')
+  list.className = 'chaty-subtitle-list'
+
+  const subtitles: string[] = getAPI()?.getAvailableSubtitles?.() || []
+  const active: string | null = getAPI()?.getCurrentSubtitle?.() ?? null
+
+  /* ---------- OFF OPTION ---------- */
+
+  const offItem = document.createElement('li')
+  offItem.textContent = 'Off'
+  offItem.setAttribute('role', 'menuitem')
+
+  if (!active) {
+    offItem.classList.add('active')
+    offItem.textContent += ' ✓'
+  }
+
+  offItem.addEventListener('click', async () => {
+  await getAPI()?.disableSubtitles?.()
+
+  buildSubtitleMenu()
   subtitleMenu.style.display = 'none'
-  subtitleMenu.style.maxHeight = '200px'
-  subtitleMenu.style.overflowY = 'auto'
+})
 
-  const buildSubtitleMenu = (): void => {
-    subtitleMenu.innerHTML = ''
+  list.appendChild(offItem)
 
-    const tracks = video.textTracks
-    if (!tracks || tracks.length === 0) return
+  /* ---------- LANGUAGES ---------- */
 
-    const offBtn = document.createElement('button')
-    offBtn.textContent = 'Off'
+  for (const lang of subtitles) {
 
-    offBtn.addEventListener('click', () => {
-      for (let i = 0; i < tracks.length; i++) {
-        const t = tracks[i]
-        if (t) t.mode = 'disabled'
-      }
-      subtitleMenu.style.display = 'none'
-    })
+    if (!lang) continue
 
-    subtitleMenu.appendChild(offBtn)
+    const item = document.createElement('li')
+    item.setAttribute('role', 'menuitem')
 
-    for (let i = 0; i < tracks.length; i++) {
-      const track = tracks[i]
-      if (!track) continue
+    // You can map labels here later
+    item.textContent = lang
 
-      const btn = document.createElement('button')
-      btn.textContent =
-        track.label || track.language || `Track ${i + 1}`
-
-      btn.addEventListener('click', () => {
-        for (let j = 0; j < tracks.length; j++) {
-          const t = tracks[j]
-          if (t) t.mode = 'disabled'
-        }
-
-        track.mode = 'showing'
-        subtitleMenu.style.display = 'none'
-      })
-
-      subtitleMenu.appendChild(btn)
+    if (active === lang) {
+      item.classList.add('active')
+      item.textContent += ' ✓'
     }
+
+    item.addEventListener('click', async () => {
+  await getAPI()?.enableSubtitle?.(lang)
+
+  buildSubtitleMenu()
+  subtitleMenu.style.display = 'none'
+})
+
+    list.appendChild(item)
   }
 
-  const toggleSubtitleMenu = (): void => {
-    const isOpen = subtitleMenu.style.display === 'block'
+  subtitleMenu.appendChild(list)
+}
 
-    if (isOpen) {
-      subtitleMenu.style.display = 'none'
-      return
-    }
-
+events?.on('subtitlechange', () => {
+  // Only rebuild if menu is open (efficient)
+  if (subtitleMenu.style.display === 'block') {
     buildSubtitleMenu()
-    subtitleMenu.style.display = 'block'
+  }
+})
+
+/* =========================================
+   Toggle Menu
+========================================= */
+
+const toggleSubtitleMenu = (): void => {
+
+  const isOpen = subtitleMenu.style.display === 'block'
+
+  if (isOpen) {
+    subtitleMenu.style.display = 'none'
+    return
   }
 
-  const onOutsideClick = (e: Event): void => {
-    const target = e.target as Node | null
-    if (!target) return
+  buildSubtitleMenu()
+  subtitleMenu.style.display = 'block'
+}
 
-    if (
-      !subtitleMenu.contains(target) &&
-      !subtitleBtn.contains(target)
-    ) {
-      subtitleMenu.style.display = 'none'
-    }
+/* =========================================
+   Outside Click Close (SAFE)
+========================================= */
+
+const onOutsideClick = (e: Event): void => {
+
+  const target = e.target as Node | null
+  if (!target) return
+
+  if (
+    !subtitleMenu.contains(target) &&
+    !subtitleBtn.contains(target)
+  ) {
+    subtitleMenu.style.display = 'none'
   }
+}
 
-  subtitleBtn.addEventListener('click', (e) => {
-    e.stopPropagation()
-    toggleSubtitleMenu()
-  })
+/* =========================================
+   Events
+========================================= */
 
-  document.addEventListener('pointerdown', onOutsideClick)
+const onSubtitleClick = (e: Event): void => {
+  e.stopPropagation()
+  toggleSubtitleMenu()
+
+  // notify UI update (used by subtitle positioning system)
+  setTimeout(() => {
+    container.dispatchEvent(new Event('chatyplayer-ui-update'))
+  }, 50)
+}
+
+subtitleBtn.addEventListener('click', onSubtitleClick)
+
+const onPointerDown = (e: Event): void => {
+  onOutsideClick(e)
+
+  setTimeout(() => {
+    container.dispatchEvent(new Event('chatyplayer-ui-update'))
+  }, 50)
+}
+
+document.addEventListener('pointerdown', onPointerDown)
+
+/* =========================================
+   Lifecycle Cleanup (MEMORY SAFE)
+========================================= */
+
+lifecycle?.registerCleanup(() => {
+  subtitleBtn.removeEventListener('click', onSubtitleClick)
+  document.removeEventListener('pointerdown', onPointerDown)
+})
 
   /* =====================================================
   SETTINGS
@@ -324,7 +399,7 @@ export function createControls(
     muteBtn.removeEventListener('click', toggleMute)
     volumeSlider.removeEventListener('input', changeVolume)
 
-    subtitleBtn.removeEventListener('click', toggleSubtitleMenu)
+    subtitleBtn.removeEventListener('click', onSubtitleClick)
     document.removeEventListener('pointerdown', onOutsideClick)
 
     fullscreenBtn.removeEventListener('click', toggleFullscreen)

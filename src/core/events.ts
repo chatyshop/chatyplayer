@@ -7,8 +7,14 @@
  * - Memory leak safe
  * - Destroy safe
  * - Clean unsubscribe
- * - Fully compatible with Player.ts
+ * - Fully compatible with Player.ts (Mode System Ready)
  */
+
+/* =========================================
+   TYPES
+========================================= */
+
+export type PlayerMode = 'normal' | 'mini' | 'theatre' | 'fullscreen';
 
 export type PlayerEventMap = {
   ready: void;
@@ -18,14 +24,23 @@ export type PlayerEventMap = {
   timeupdate: number;
   loadedmetadata: number;
 
-  // ✅ FIXED: now accepts payload
   error: MediaError | null;
 
   fullscreenchange: boolean;
   pipchange: boolean;
   destroy: void;
+
   subtitlechange: string | null;
   qualitychange: string;
+
+  theatre: boolean;
+  fullscreen: boolean;
+
+  // 🔥 NEW: Mode system event (CRITICAL FIX)
+  modechange: {
+    prev: PlayerMode;
+    next: PlayerMode;
+  };
 };
 
 type EventKey = keyof PlayerEventMap;
@@ -34,6 +49,10 @@ type EventHandler<K extends EventKey> =
   PlayerEventMap[K] extends void
     ? () => void
     : (payload: PlayerEventMap[K]) => void;
+
+/* =========================================
+   EVENT EMITTER
+========================================= */
 
 export class EventEmitter {
   private listeners = new Map<EventKey, Set<unknown>>();
@@ -89,38 +108,37 @@ export class EventEmitter {
   }
 
   /* =========================================
-   Emit (STRICT TYPE-SAFE - FINAL FIX)
-========================================= */
+     Emit (Strict + Safe)
+  ========================================= */
 
-public emit<K extends EventKey>(
-  event: K,
-  ...args: PlayerEventMap[K] extends void ? [] : [PlayerEventMap[K]]
-): void {
-  if (this.destroyed) return;
+  public emit<K extends EventKey>(
+    event: K,
+    ...args: PlayerEventMap[K] extends void ? [] : [PlayerEventMap[K]]
+  ): void {
+    if (this.destroyed) return;
 
-  const handlers = this.listeners.get(event);
-  if (!handlers) return;
+    const handlers = this.listeners.get(event);
+    if (!handlers) return;
 
-  handlers.forEach((rawHandler) => {
-    try {
-      const handler = rawHandler as EventHandler<K>;
+    handlers.forEach((rawHandler) => {
+      try {
+        const handler = rawHandler as EventHandler<K>;
 
-      if (args.length === 1) {
-        // ✅ Fully safe narrowing (TS understands this)
-        const payload = args[0] as PlayerEventMap[K];
-        (handler as (arg: PlayerEventMap[K]) => void)(payload);
-      } else {
-        (handler as () => void)();
+        if (args.length === 1) {
+          const payload = args[0] as PlayerEventMap[K];
+          (handler as (arg: PlayerEventMap[K]) => void)(payload);
+        } else {
+          (handler as () => void)();
+        }
+
+      } catch (error) {
+        console.error(
+          `[ChatyPlayer] Error in "${String(event)}" handler:`,
+          error
+        );
       }
-
-    } catch (error) {
-      console.error(
-        `[ChatyPlayer] Error in "${String(event)}" handler:`,
-        error
-      );
-    }
-  });
-}
+    });
+  }
 
   /* =========================================
      Remove All

@@ -23,7 +23,7 @@ export interface PlayerState {
   mini: boolean;
   destroyed: boolean;
 
-  // ✅ Added for subtitles support
+  // ✅ Subtitles support
   subtitle: string | null;
 }
 
@@ -48,8 +48,6 @@ export class StateManager {
       theater: false,
       mini: false,
       destroyed: false,
-
-      // ✅ Initialize subtitle state
       subtitle: null
     };
 
@@ -62,6 +60,14 @@ export class StateManager {
 
   public getState(): Readonly<PlayerState> {
     return Object.freeze({ ...this.state });
+  }
+
+  /* =========================================
+     🔥 NEW: Safe Getter (REQUIRED FIX)
+  ========================================= */
+
+  public get<K extends keyof PlayerState>(key: K): PlayerState[K] {
+    return this.state[key];
   }
 
   /* =========================================
@@ -117,21 +123,21 @@ export class StateManager {
 
     let changed = false;
 
-    const nextState = { ...this.state };
+    const nextState: PlayerState = { ...this.state };
 
     for (const key of Object.keys(partial) as (keyof PlayerState)[]) {
 
       const newValue = partial[key];
 
       if (newValue !== undefined && nextState[key] !== newValue) {
-        (nextState as Record<keyof PlayerState, unknown>)[key] = newValue;
+        (nextState as any)[key] = newValue
         changed = true;
       }
     }
 
     if (!changed) return;
 
-    this.state = nextState as PlayerState;
+    this.state = nextState;
 
     this.notify();
   }
@@ -162,8 +168,7 @@ export class StateManager {
 
     const snapshot = this.getState();
 
-    this.listeners.forEach((listener) => {
-
+    for (const listener of this.listeners) {
       try {
         listener(snapshot);
       } catch (error) {
@@ -172,7 +177,6 @@ export class StateManager {
           error
         );
       }
-
-    });
+    }
   }
 }
