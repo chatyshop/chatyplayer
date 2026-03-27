@@ -5,6 +5,123 @@ All notable changes to ChatyPlayer will be documented in this file.
 The format is based on Keep a Changelog and follows Semantic Versioning.
 
 
+## [1.0.6] – Mobile UX, Stability & Architecture Upgrade  
+
+Release date: 27 Mar 2026  
+
+This release delivers major improvements to mobile usability, feature stability, and core architecture. It also cleans up legacy code and ensures consistent behavior across all player modes.
+
+---
+
+### 📱 Mobile & UI
+
+* Fixed settings panel clipping on small screens  
+* Fixed subtitle menu clipping on small screens  
+* Improved settings panel spacing and positioning  
+* Fixed subtitle overlap when UI panels are active  
+* Improved desktop settings panel positioning  
+* Improved mini-player drag and back button interaction  
+* Fixed timeline seek hit area on mobile  
+* Replaced unstable live-frame preview with mobile-friendly thumbnail strip  
+* Improved thumbnail strip readability and scaling  
+* Restored consistent tooltip and chapter preview positioning  
+* Aligned controls, timeline, settings, and themes with current DOM structure  
+
+---
+
+### 🧠 Core Architecture
+
+* Initialized `StateManager` and `LifecycleManager` before UI mount  
+* Properly wired lifecycle, state, and events into controls and features  
+* Ensured synchronous lifecycle cleanup before teardown  
+* Improved destroy/recreate flow reliability  
+* Added typed state for playback speed, quality, and scrubbing  
+* Improved typed event handling:
+  * `speedchange`, `qualitychange`, `fullscreenchange`, `pipchange`  
+  * `theatre`, `scrubstart`, `scrubmove`, `scrubend`  
+
+---
+
+### 🛠 Feature Fixes
+
+**Fullscreen**
+* Fixed external exit resync  
+* Added failure recovery handling  
+* Removed duplicate listeners  
+
+**PiP**
+* Unified support detection  
+* Respected `disablePictureInPicture`  
+* Fixed async toggle issues  
+
+**Quality**
+* Fixed auto mode display  
+* Fixed lock/stall on failed source switch  
+* Synced quality state  
+
+**Speed**
+* Unified update flow  
+* Synced UI with shared events  
+
+**Resume**
+* Switched to shared storage utility  
+* Safer storage keys  
+* Prevented near-end resume saves  
+
+**Subtitles**
+* Fixed async race conditions  
+* Added failed-load rollback  
+* Fixed cleanup issues  
+
+**Gestures**
+* Prevented accidental UI-triggered gestures  
+* Synced mute state with swipe volume  
+
+**Keyboard**
+* Removed global theatre shortcut  
+* Improved volume/mute consistency  
+
+**Mini Player**
+* Fixed mode restore logic  
+* Improved drag and exit reliability  
+
+**Chapters**
+* Fixed incorrect timeline placement  
+* Fixed early active highlighting  
+
+**Timestamp**
+* Fixed one-time apply behavior  
+* Ignored invalid values  
+* Routed through player seek logic  
+
+**Theater Mode**
+* Preserved/restored body overflow  
+* Emitted typed theater event  
+
+**Thumbnail / Timeline**
+* Fixed cleanup wiring  
+* Improved mobile behavior  
+* Removed forced visibility on metadata load  
+
+---
+
+### 🧹 Developer Cleanup
+
+* Removed stale files:
+  * `layout.ts`  
+  * `constants.ts`  
+  * `dom.ts`  
+  * `environment.ts`  
+  * `throttle.ts`  
+
+* Simplified:
+  * `formats.ts`  
+  * `time.ts`  
+  * `storage.ts`  
+
+* Removed final `any` usage from `state.ts`  
+
+
 ## [1.0.5] – Stability & Demo Improvements
 
 Release date: 25 Mar 2026
