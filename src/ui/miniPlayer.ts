@@ -30,6 +30,13 @@ export function createMiniPlayer(
   let visibilityTimeout: number | null = null
   let clickCooldown: number | null = null
 
+  const clearVisibilityTimeout = () => {
+    if (visibilityTimeout) {
+      clearTimeout(visibilityTimeout)
+      visibilityTimeout = null
+    }
+  }
+
   /* ---------------------------
      Sentinel
   --------------------------- */
@@ -89,7 +96,9 @@ export function createMiniPlayer(
     if (isMini) return
 
     const currentMode = player.getMode()
-    lastMode = currentMode === 'mini' ? 'normal' : currentMode
+    if (currentMode !== 'normal') return
+
+    lastMode = currentMode
     player.setMode('mini')
 
     container.style.cursor = 'grab'
@@ -103,10 +112,12 @@ export function createMiniPlayer(
     state?.set?.('mini', true)
   }
 
-  const deactivateMini = () => {
+  const deactivateMini = (restoreMode = true) => {
     if (!isMini) return
 
-    player.setMode(lastMode || 'normal')
+    if (restoreMode) {
+      player.setMode(lastMode || 'normal')
+    }
 
     container.style.left = ''
     container.style.top = ''
@@ -127,8 +138,16 @@ export function createMiniPlayer(
   --------------------------- */
 
   player.getEvents().on('modechange', ({ next }) => {
+    clearVisibilityTimeout()
+    observerLock = false
+
+    if (next !== 'normal') {
+      manualExit = false
+      manualCooldown = false
+    }
+
     if (next !== 'mini' && isMini) {
-      deactivateMini()
+      deactivateMini(false)
     }
   })
 
@@ -144,12 +163,15 @@ export function createMiniPlayer(
 
         const isVisible = entry.isIntersecting
 
-        if (visibilityTimeout) {
-          clearTimeout(visibilityTimeout)
-          visibilityTimeout = null
-        }
+        clearVisibilityTimeout()
 
-        if (!isVisible && !isMini && !manualExit && !manualCooldown) {
+        if (
+          !isVisible &&
+          !isMini &&
+          !manualExit &&
+          !manualCooldown &&
+          player.getMode() === 'normal'
+        ) {
           observerLock = true
 
           visibilityTimeout = window.setTimeout(() => {
@@ -158,7 +180,7 @@ export function createMiniPlayer(
           }, 120)
         }
 
-        if (isVisible && isMini) {
+        if (isVisible && isMini && player.getMode() === 'mini') {
           observerLock = true
 
           visibilityTimeout = window.setTimeout(() => {
@@ -316,7 +338,7 @@ export function createMiniPlayer(
     observer.disconnect()
     sentinel.remove()
 
-    if (visibilityTimeout) clearTimeout(visibilityTimeout)
+    clearVisibilityTimeout()
     if (cooldownTimer) clearTimeout(cooldownTimer)
     if (clickCooldown) clearTimeout(clickCooldown)
 

@@ -248,7 +248,12 @@
 .chatyplayer-theater {
   width: 100% !important;
   max-width: 100% !important;
-  margin: 0 !important;
+  margin: 0 auto !important;
+}
+
+.chatyplayer-theater .chatyplayer-video-wrapper {
+  width: 100%;
+  max-width: 100%;
 }
 
 /* =========================================================
@@ -304,8 +309,7 @@
    ========================================================= */
 
 @media (max-width: 900px) and (orientation: landscape) {
-  .chatyplayer-root.chatyplayer-fullscreen,
-  .chatyplayer-root.chatyplayer-theater {
+  .chatyplayer-root.chatyplayer-fullscreen {
     position: fixed;
     inset: 0;
 
@@ -320,8 +324,7 @@
     z-index: 10000;
   }
 
-  .chatyplayer-root.chatyplayer-fullscreen .chatyplayer-video-wrapper,
-  .chatyplayer-root.chatyplayer-theater .chatyplayer-video-wrapper {
+  .chatyplayer-root.chatyplayer-fullscreen .chatyplayer-video-wrapper {
     position: absolute;
     inset: 0;
 
@@ -331,8 +334,7 @@
     aspect-ratio: unset !important;
   }
 
-  .chatyplayer-root.chatyplayer-fullscreen video,
-  .chatyplayer-root.chatyplayer-theater video {
+  .chatyplayer-root.chatyplayer-fullscreen video {
     position: absolute;
     inset: 0;
 
@@ -414,8 +416,6 @@
 }
 
 @media (pointer: coarse) {
-  .chatyplayer-root.chatyplayer-theater.hide-ui .chatyplayer-controls-layer,
-  .chatyplayer-root.chatyplayer-theater.hide-ui .chatyplayer-timeline-layer,
   .chatyplayer-root.chatyplayer-fullscreen.hide-ui .chatyplayer-controls-layer,
   .chatyplayer-root.chatyplayer-fullscreen.hide-ui .chatyplayer-timeline-layer {
     opacity: 1 !important;
