@@ -104,6 +104,11 @@ export function createTooltip(
   ========================================= */
 
   const update: TooltipUpdater = (time, position) => {
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 480px)').matches) {
+      tooltip.style.display = 'none'
+      tooltip.classList.remove('is-visible')
+      return
+    }
 
     if (time === null) {
       tooltip.style.display = 'none'
@@ -155,7 +160,8 @@ export function createTooltip(
       thumbnail && thumbnail.style.display !== 'none'
         ? thumbnail.getBoundingClientRect().height
         : 0
-    const desiredBottomOffset = Math.round(thumbnailHeight + 18)
+    const isSmallScreen = typeof window !== 'undefined' && window.matchMedia('(max-width: 480px)').matches
+    const desiredBottomOffset = Math.round(thumbnailHeight + (isSmallScreen ? 8 : 18))
     const maxBottomOffset = videoWrapper
       ? Math.max(
           12,

@@ -152,6 +152,10 @@ export function createThumbnail(
   let rafId: number | null = null;
 
   const update: ThumbnailUpdater = (time, position) => {
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 480px)').matches) {
+      thumb.style.display = 'none';
+      return;
+    }
 
     /* Hide safely */
     if (!Number.isFinite(time)) {

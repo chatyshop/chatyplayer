@@ -33,6 +33,9 @@ export type PlayerEventMap = {
   subtitlechange: string | null;
   qualitychange: string;
   speedchange: number;
+  scrubstart: number;
+  scrubmove: number;
+  scrubend: number;
 
   theatre: boolean;
 

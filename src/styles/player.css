@@ -314,6 +314,11 @@
   visibility: hidden;
 }
 
+.chatyplayer-root.chatyplayer-preview-open .chatyplayer-subtitle-layer {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .chatyplayer-subtitle-text {
   max-width: 80%;
   color: white;

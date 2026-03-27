@@ -13,6 +13,7 @@
 export interface PlayerState {
   ready: boolean;
   playing: boolean;
+  scrubbing: boolean;
   muted: boolean;
   volume: number;
   speed: number;
@@ -41,6 +42,7 @@ export class StateManager {
     this.state = {
       ready: false,
       playing: false,
+      scrubbing: false,
       muted: false,
       volume: 1,
       speed: 1,
@@ -128,13 +130,19 @@ export class StateManager {
     let changed = false;
 
     const nextState: PlayerState = { ...this.state };
+    const assignValue = <K extends keyof PlayerState>(
+      key: K,
+      value: PlayerState[K]
+    ): void => {
+      nextState[key] = value;
+    };
 
     for (const key of Object.keys(partial) as (keyof PlayerState)[]) {
 
       const newValue = partial[key];
 
       if (newValue !== undefined && nextState[key] !== newValue) {
-        (nextState as any)[key] = newValue
+        assignValue(key, newValue);
         changed = true;
       }
     }

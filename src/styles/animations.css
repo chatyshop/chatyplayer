@@ -45,6 +45,12 @@
   transform: translateY(-14px);
 }
 
+@media (max-width: 480px) {
+  .chatyplayer-tooltip.is-visible {
+    transform: translateY(-4px);
+  }
+}
+
 /* ========================================
    Button Press Feedback
    ======================================== */
