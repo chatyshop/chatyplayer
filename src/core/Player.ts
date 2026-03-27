@@ -229,8 +229,13 @@ export class Player {
   }
 
   public toggleTheatre() {
+    if (this.mode === 'theatre') {
+      this.setMode('normal')
+      return
+    }
+
     if (this.isMobileTheatreDisabled()) return
-    this.setMode(this.mode === 'theatre' ? 'normal' : 'theatre')
+    this.setMode('theatre')
   }
 
   public toggleFullscreen() {

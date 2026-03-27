@@ -25,6 +25,7 @@ export function createMiniPlayer(
   let manualExit = false
   let manualCooldown = false
   let cooldownTimer: number | null = null
+  let fullscreenExitCooldownTimer: number | null = null
 
   let observerLock = false
   let visibilityTimeout: number | null = null
@@ -35,6 +36,19 @@ export function createMiniPlayer(
       clearTimeout(visibilityTimeout)
       visibilityTimeout = null
     }
+  }
+
+  const startFullscreenExitCooldown = () => {
+    manualCooldown = true
+
+    if (fullscreenExitCooldownTimer) {
+      clearTimeout(fullscreenExitCooldownTimer)
+    }
+
+    fullscreenExitCooldownTimer = window.setTimeout(() => {
+      manualCooldown = false
+      fullscreenExitCooldownTimer = null
+    }, 800)
   }
 
   /* ---------------------------
@@ -137,13 +151,20 @@ export function createMiniPlayer(
      Mode Sync
   --------------------------- */
 
-  player.getEvents().on('modechange', ({ next }) => {
+  player.getEvents().on('modechange', ({ prev, next }) => {
     clearVisibilityTimeout()
     observerLock = false
 
+    if (prev === 'fullscreen' && next === 'normal') {
+      startFullscreenExitCooldown()
+    }
+
     if (next !== 'normal') {
       manualExit = false
-      manualCooldown = false
+
+      if (next !== 'fullscreen') {
+        manualCooldown = false
+      }
     }
 
     if (next !== 'mini' && isMini) {
@@ -340,6 +361,7 @@ export function createMiniPlayer(
 
     clearVisibilityTimeout()
     if (cooldownTimer) clearTimeout(cooldownTimer)
+    if (fullscreenExitCooldownTimer) clearTimeout(fullscreenExitCooldownTimer)
     if (clickCooldown) clearTimeout(clickCooldown)
 
     container.removeEventListener('pointerdown', onPointerDown)

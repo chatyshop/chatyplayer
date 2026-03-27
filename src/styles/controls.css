@@ -189,7 +189,7 @@
    MOBILE OPTIMIZATION (KEY FIX)
 ========================================================= */
 
-@media (max-width: 600px) {
+@media (max-width: 600px), (pointer: coarse), (hover: none) {
 
   .chatyplayer-controls {
     gap: 6px;
@@ -246,7 +246,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 480px), (pointer: coarse) and (max-width: 900px), (hover: none) and (max-width: 900px) {
   .chatyplayer-subtitle-menu {
     position: fixed;
     left: 12px;

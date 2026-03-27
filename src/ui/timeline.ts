@@ -242,13 +242,17 @@ export function createTimeline(
     container.classList.remove('chatyplayer-preview-open');
     updateTooltip(null);
     updateThumbnail?.(NaN, 0);
-    state?.set?.('scrubbing', false);
-    events.emit('scrubend', video.currentTime);
+
+    let finalTime = video.currentTime;
 
     if (isMobilePreviewMode() && pendingMobileTime !== null) {
       player.seek(pendingMobileTime);
+      finalTime = pendingMobileTime;
       pendingMobileTime = null;
     }
+
+    state?.set?.('scrubbing', false);
+    events.emit('scrubend', finalTime);
 
     if (isMobilePreviewMode() && wasPlayingBeforeDrag) {
       player.play().catch(() => {});

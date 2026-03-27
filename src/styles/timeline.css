@@ -303,7 +303,7 @@
   }
 }
 
-@media (pointer: coarse) {
+@media (pointer: coarse), (hover: none) {
   .chatyplayer-timeline-layer {
     padding: 0 10px;
   }
@@ -371,7 +371,7 @@
   }
 }
 
-@media (pointer: coarse) and (max-height: 500px) {
+@media (pointer: coarse) and (max-height: 500px), (hover: none) and (max-height: 500px) {
   .chatyplayer-timeline-layer {
     bottom: 40px;
     padding: 0 8px;
