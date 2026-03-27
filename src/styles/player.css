@@ -412,3 +412,14 @@
   }
 
 }
+
+@media (pointer: coarse) {
+  .chatyplayer-root.chatyplayer-theater.hide-ui .chatyplayer-controls-layer,
+  .chatyplayer-root.chatyplayer-theater.hide-ui .chatyplayer-timeline-layer,
+  .chatyplayer-root.chatyplayer-fullscreen.hide-ui .chatyplayer-controls-layer,
+  .chatyplayer-root.chatyplayer-fullscreen.hide-ui .chatyplayer-timeline-layer {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+  }
+}

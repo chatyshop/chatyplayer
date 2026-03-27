@@ -56,6 +56,7 @@ export class Player {
   private handleCoreTimeUpdate = () => {}
   private handleCoreLoadedMetadata = () => {}
   private handleCoreError = () => {}
+  private cleanupAutoHideModeListener = () => {}
 
   public readonly api
 
@@ -240,32 +241,68 @@ export class Player {
 
     const isMobile = window.matchMedia('(pointer: coarse)').matches
     const delay = isMobile ? 3500 : 2000
+    const shouldKeepControlsVisible = () =>
+      isMobile && (this.mode === 'theatre' || this.mode === 'fullscreen')
 
-    this.handleUIShow = () => {
-      if (this.destroyed) return
+    const clearHideTimeout = () => {
+      if (this.hideTimeout) {
+        clearTimeout(this.hideTimeout)
+        this.hideTimeout = undefined
+      }
+    }
 
-      this.container.classList.remove('hide-ui')
+    const scheduleHide = () => {
+      clearHideTimeout()
 
-      if (this.hideTimeout) clearTimeout(this.hideTimeout)
+      if (shouldKeepControlsVisible()) {
+        this.container.classList.remove('hide-ui')
+        return
+      }
 
       this.hideTimeout = window.setTimeout(() => {
-        if (!this.video.paused) {
+        if (!this.video.paused && !shouldKeepControlsVisible()) {
           this.container.classList.add('hide-ui')
         }
       }, delay)
     }
 
+    this.handleUIShow = () => {
+      if (this.destroyed) return
+
+      this.container.classList.remove('hide-ui')
+      scheduleHide()
+    }
+
     this.handlePause = () => {
+      clearHideTimeout()
       this.container.classList.remove('hide-ui')
     }
 
-    this.handlePlay = this.handleUIShow
+    this.handlePlay = () => {
+      if (shouldKeepControlsVisible()) {
+        clearHideTimeout()
+        this.container.classList.remove('hide-ui')
+        return
+      }
+
+      this.handleUIShow()
+    }
 
     this.wrapper.addEventListener('pointermove', this.handleUIShow, { passive: true })
     this.wrapper.addEventListener('pointerdown', this.handleUIShow, { passive: true })
+    this.wrapper.addEventListener('touchstart', this.handleUIShow, { passive: true })
 
     this.video.addEventListener('pause', this.handlePause)
     this.video.addEventListener('play', this.handlePlay)
+
+    this.cleanupAutoHideModeListener = this.events.on('modechange', ({ next }) => {
+      clearHideTimeout()
+      this.container.classList.remove('hide-ui')
+
+      if (!this.video.paused && next === 'normal') {
+        scheduleHide()
+      }
+    })
   }
 
   /* ========================================= */
@@ -366,6 +403,7 @@ export class Player {
 
     this.wrapper.removeEventListener('pointermove', this.handleUIShow)
     this.wrapper.removeEventListener('pointerdown', this.handleUIShow)
+    this.wrapper.removeEventListener('touchstart', this.handleUIShow)
 
     this.video.removeEventListener('pause', this.handlePause)
     this.video.removeEventListener('play', this.handlePlay)
@@ -375,6 +413,7 @@ export class Player {
     this.video.removeEventListener('timeupdate', this.handleCoreTimeUpdate)
     this.video.removeEventListener('loadedmetadata', this.handleCoreLoadedMetadata)
     this.video.removeEventListener('error', this.handleCoreError)
+    this.cleanupAutoHideModeListener()
 
     for (const f of this.activeFeatures) {
       try { f.destroy?.(this) } catch {}
